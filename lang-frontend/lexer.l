@@ -14,8 +14,6 @@ int line = 1;
 "fun"           { return FUN; }
 "if"            { return IF; }
 "else"          { return ELSE; }
-"while"         { return WHILE; }
-"break"         { return BREAK; }
 "return"        { return RETURN; }
 
 "Int"           { return INT; }

@@ -50,7 +50,6 @@ statements
 statement
     : declaration_statement
     | if_statement
-    | while_statement
     | break_statement SEMICOLON
     | function_call SEMICOLON
     | retutn_statement SEMICOLON
@@ -73,11 +72,6 @@ declaration_statement
 if_statement
     : IF LPAREN expression RPAREN block
     | IF LPAREN expression RPAREN block ELSE block
-;
-
-/* while(bool) { ... } */
-while_statement
-    : WHILE LPAREN expression RPAREN block
 ;
 
 /* break */
