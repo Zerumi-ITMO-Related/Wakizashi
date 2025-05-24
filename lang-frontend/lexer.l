@@ -1,4 +1,5 @@
 %{
+#include "ast.h"
 #include "parser.h"
 #include <stdlib.h>
 #include <string.h>
@@ -42,6 +43,9 @@ int line = 1;
 "<"             { return LESS; }
 ">"             { return MORE; }
 "=="            { return EQUAL; }
+"&&"            { return AND; }
+"||"            { return OR; }
+"!"             { return NOT; }
 
 [ \t\r]+        { /* пропускаем */ }
 

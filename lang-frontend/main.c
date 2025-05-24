@@ -1,5 +1,13 @@
+#include <stdio.h>
+
+#include "ast_print.h"
+
 int yyparse();
 
 int main() {
-    return yyparse();
+    yyparse();
+
+    printf("#AST:\n");
+    visualize_ast(ast_root, stdout);
+    printf("\n");
 }

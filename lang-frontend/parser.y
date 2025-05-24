@@ -1,4 +1,5 @@
 %{
+#include "ast.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -6,123 +7,251 @@
 extern int yylex();
 void yyerror(const char *s);
 
-typedef struct {
-    char* sval;
-    int   ival;
-} yylval_t;
-
-#define YYSTYPE yylval_t
 #define YYERROR_VERBOSE 1
 
 extern int yylineno;
 extern char* yytext;
+
+extern ASTNode* ast_root;
 %}
 
 %union {
-    char* sval;
     int ival;
+    char* sval;
+    ASTNode* node;
+
+    struct {
+        char **names;
+        char **types;
+        size_t count;
+    } params;
 }
 
-%token <sval> IDENT
 %token <ival> LIT_INT
+%token <sval> IDENT
 %token <sval> LIT_STRING
+
 %token VAL FUN RETURN
 %token UNIT INT BOOLEAN STRING
-%token IF ELSE WHILE BREAK
-%token ASSIGN COLON SEMICOLON COMMA
+%token IF ELSE
+%token COLON SEMICOLON COMMA
 %token LPAREN RPAREN LBRACE RBRACE LESS MORE EQUAL
-%token PLUS MINUS MUL DIV
+%token ASSIGN PLUS MINUS MUL DIV AND OR NOT
 
-%type <sval> expression
-%type <sval> param param_list
+%type <sval> type 
+%type <params> param param_list
+
+%type <node> program statements statement declaration_statement
+%type <node> expression if_statement function_call retutn_statement
+%type <node> block
+
+%right '='
+%left '+' '-'
+%left '*' '/' '%'
+%left '.'
+
+%start program
 
 %%
 
 program
-    : statements
+    : statements { ast_root = $1; }
 ;
 
 statements
-    : /* empty */
-    | statement statements
+    : statement statements
+    {
+        ASTNode *program;
+        if ($1->type == NODE_PROGRAM) {
+            program = $1;
+        } else {
+            program = create_program_node();
+            add_child(program, $1);
+        }
+        if ($2) {
+            for (size_t i = 0; i < $2->block.children.size; ++i) {
+                add_child(program, $2->block.children.items[i]);
+            }
+        }
+        $$ = program;
+    }
+    | statement
+    {
+        ASTNode *program = create_program_node();
+        add_child(program, $1);
+        $$ = program;
+    }
 ;
 
+
+/* fun main() : Unit { ... } */
 statement
-    : declaration_statement
-    | if_statement
-    | break_statement SEMICOLON
-    | function_call SEMICOLON
-    | retutn_statement SEMICOLON
+    : declaration_statement         { $$ = $1; }
+    | if_statement                  { $$ = $1; }
+    | function_call SEMICOLON       { $$ = $1; }
+    | retutn_statement SEMICOLON    { $$ = $1; }
 ;
 
+/* factorial(2 + 2) */
 function_call
     : IDENT LPAREN expression RPAREN
+    {
+        $$ = create_function_call($1, $3);
+    }
 ;
 
+/* return 2 + 2 */
 retutn_statement
-    : RETURN
-    | RETURN expression
+    : RETURN                   { $$ = create_return_statement(NULL); }
+    | RETURN expression        { $$ = create_return_statement($2); }
 ;
 
+/* val a: Int = 4 */
 declaration_statement
-    : VAL IDENT COLON type ASSIGN expression SEMICOLON
-    | FUN IDENT LPAREN param_list RPAREN COLON type block
+    : VAL IDENT COLON type ASSIGN expression SEMICOLON {
+        $$ = create_variable_declaration($2, $4, $6);
+    }
+    | FUN IDENT LPAREN param_list RPAREN COLON type block 
+    {
+            $$ = create_function_declaration(
+                $2,
+                $4.names,
+                $4.types,
+                $4.count,
+                $7,
+                $8
+            );
+        }
 ;
-    
+
+/* if (bool) { ... } else { ... } */
 if_statement
     : IF LPAREN expression RPAREN block
+    { 
+        $$ = create_if_node($3, $5, NULL);
+    }
     | IF LPAREN expression RPAREN block ELSE block
-;
-
-/* break */
-break_statement
-    : BREAK
+    { 
+        $$ = create_if_node($3, $5, $7);
+    }
 ;
 
 /* 2 + 2 */
-/* factorial(a) */
 expression
-    : expression PLUS expression
+    : expression PLUS expression 
+    {
+        $$ = create_binary_operation("+", $1, $3);
+    }
     | expression MINUS expression
+    {
+        $$ = create_binary_operation("-", $1, $3);
+    }
     | expression MUL expression
+    {
+        $$ = create_binary_operation("*", $1, $3);
+    }
     | expression DIV expression
+    {
+        $$ = create_binary_operation("/", $1, $3);
+    }
     | expression LESS expression
+    {
+        $$ = create_binary_operation("<", $1, $3);
+    }
     | expression MORE expression
+    {
+        $$ = create_binary_operation(">", $1, $3);
+    }
     | expression EQUAL expression
+    {
+        $$ = create_binary_operation("==", $1, $3);
+    }
     | LPAREN expression RPAREN
+    {
+        $$ = $2; // просто возвращаем выражение внутри скобок
+    }
     | function_call
+    {
+        $$ = $1; // возвращаем вызов функции
+    }
     | LIT_INT
+    {
+        $$ = create_literal_int($1);
+    }
     | LIT_STRING
+    {
+        $$ = create_literal_string($1);
+    }
     | IDENT
+    {
+        $$ = create_identifier_node($1); // создаем узел переменной
+    }
 ;
 
 
 /* a: Int, b: String */
 param_list
-    : /* nothing */
+    :                          // пустой список
+    {
+        $$.names = NULL;
+        $$.types = NULL;
+        $$.count = 0;
+    }
     | param
+    {
+        $$.names = malloc(sizeof(char*));
+        $$.types = malloc(sizeof(char*));
+        $$.names[0] = $1.names[0];
+        $$.types[0] = $1.types[0];
+        $$.count = 1;
+    }
     | param_list COMMA param
+    {
+        size_t n = $1.count + 1;
+        $$.names = realloc($1.names, sizeof(char*) * n);
+        $$.types = realloc($1.types, sizeof(char*) * n);
+        $$.names[n - 1] = $3.names[0];
+        $$.types[n - 1] = $3.types[0];
+        $$.count = n;
+    }
 ;
 
 /* a: Int */
 param
     : IDENT COLON type
+    {
+        $$.names = malloc(sizeof(char*));
+        $$.types = malloc(sizeof(char*));
+        $$.names[0] = strdup($1);
+        $$.types[0] = strdup($3);
+        $$.count = 1;
+    }
 ;
 
 /* { ... } */
 block
     : LBRACE statements RBRACE
+    {
+        ASTNode *blk = create_block_node();
+        if ($2) add_child(blk, $2);
+        $$ = blk;
+    }
 ;
 
 /* Int */
 type
-    : INT
-    | BOOLEAN
-    | STRING
-    | UNIT
+    : INT     { $$ = strdup("Int"); }
+    | BOOLEAN { $$ = strdup("Boolean"); }
+    | STRING  { $$ = strdup("String"); }
+    | UNIT    { $$ = strdup("Unit"); }
 ;
 
 %%
+
+// Получение корня AST
+ASTNode* get_ast_root() {
+    return ast_root;
+}
 
 void yyerror(const char *s) {
     fprintf(stderr, "Syntax error at line %d: %s near '%s'\n", yylineno, s, yytext);
