@@ -1,0 +1,6 @@
+compiler
+*.o
+lexer.c
+parser.c
+parser.h
+parser.output

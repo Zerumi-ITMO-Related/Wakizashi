@@ -1,0 +1,6 @@
+val b: Int = 14;
+
+fun main() : Unit {
+    val a: Int = 10;
+    print(a);
+}
