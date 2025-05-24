@@ -1,170 +1,230 @@
-#include "ast_print.h"
-#include "ast.h"
 #include <stdio.h>
 #include <string.h>
+#include "ast.h"
+#include "ast_print.h"
 
-// Вспомогательная функция для отображения отступов
 static void print_indent(int indent, FILE *output) {
   for (int i = 0; i < indent; i++) {
     fprintf(output, "  ");
   }
 }
 
-// Рекурсивная функция для визуализации AST с отступами
-static void visualize_ast_with_indent(ASTNode *node, int indent, FILE *output) {
+static void print_json_string(const char *s, FILE *output) {
+  fputc('"', output);
+  for (const char *p = s; *p; ++p) {
+    if (*p == '"' || *p == '\\') {
+      fputc('\\', output);
+    }
+    fputc(*p, output);
+  }
+  fputc('"', output);
+}
+
+static void visualize_ast_json(ASTNode *node, int indent, FILE *output) {
   if (!node) {
-    print_indent(indent, output);
-    fprintf(output, "NULL\n");
+    fprintf(output, "null");
     return;
   }
 
+  print_indent(indent, output);
+  fprintf(output, "{\n");
+  indent++;
+
+  print_indent(indent, output);
+  fprintf(output, "\"type\": ");
   switch (node->type) {
   case NODE_PROGRAM:
+    fprintf(output, "\"PROGRAM\",\n");
     print_indent(indent, output);
-    fprintf(output, "PROGRAM\n");
+    fprintf(output, "\"children\": [\n");
     for (size_t i = 0; i < node->block.children.size; i++) {
-      visualize_ast_with_indent(node->block.children.items[i], indent + 1,
-                                output);
+      visualize_ast_json(node->block.children.items[i], indent + 1, output);
+      if (i + 1 < node->block.children.size) fprintf(output, ",\n");
+      else fprintf(output, "\n");
     }
+    print_indent(indent, output);
+    fprintf(output, "]\n");
     break;
 
   case NODE_VARIABLE_DECLARATION:
+    fprintf(output, "\"VAR_DECL\",\n");
     print_indent(indent, output);
-    fprintf(output, "VAR_DECL: %s (type: %s)\n",
-            node->variable.name, node->variable.var_type);
+    fprintf(output, "\"name\": ");
+    print_json_string(node->variable.name, output);
+    fprintf(output, ",\n");
+    print_indent(indent, output);
+    fprintf(output, "\"var_type\": ");
+    print_json_string(node->variable.var_type, output);
     if (node->variable.initializer) {
-      print_indent(indent + 1, output);
-      fprintf(output, "INIT:\n");
-      visualize_ast_with_indent(node->variable.initializer, indent + 2, output);
+      fprintf(output, ",\n");
+      print_indent(indent, output);
+      fprintf(output, "\"initializer\":\n");
+      visualize_ast_json(node->variable.initializer, indent + 1, output);
+      fprintf(output, "\n");
+    } else {
+      fprintf(output, "\n");
     }
     break;
 
-  case NODE_BINARY_OPERATION:
-    print_indent(indent, output);
-    fprintf(output, "BIN_OP: %s\n", node->binary_op.op_type);
-    print_indent(indent + 1, output);
-    fprintf(output, "LEFT:\n");
-    visualize_ast_with_indent(node->binary_op.left, indent + 2, output);
-    print_indent(indent + 1, output);
-    fprintf(output, "RIGHT:\n");
-    visualize_ast_with_indent(node->binary_op.right, indent + 2, output);
-    break;
-
   case NODE_LITERAL:
+    fprintf(output, "\"LITERAL\",\n");
     print_indent(indent, output);
+    fprintf(output, "\"value\": ");
     if (strcmp(node->literal.type, "int") == 0) {
-      fprintf(output, "LITERAL: %d (type: int)\n", node->literal.int_value);
+      fprintf(output, "%d,\n", node->literal.int_value);
+      print_indent(indent, output);
+      fprintf(output, "\"value_type\": \"int\"\n");
     } else if (strcmp(node->literal.type, "string") == 0) {
-      fprintf(output, "LITERAL: \"%s\" (type: string)\n",
-              node->literal.string_value);
+      print_json_string(node->literal.string_value, output);
+      fprintf(output, ",\n");
+      print_indent(indent, output);
+      fprintf(output, "\"value_type\": \"string\"\n");
     } else {
-      fprintf(output, "LITERAL: (unknown type)\n");
+      fprintf(output, "null\n");
     }
     break;
 
   case NODE_IDENTIFIER:
+    fprintf(output, "\"IDENT\",\n");
     print_indent(indent, output);
-    fprintf(output, "IDENT: %s\n", node->identifier.name);
+    fprintf(output, "\"name\": ");
+    print_json_string(node->identifier.name, output);
+    fprintf(output, "\n");
     break;
 
   case NODE_ASSIGNMENT:
+    fprintf(output, "\"ASSIGN\",\n");
     print_indent(indent, output);
-    fprintf(output, "ASSIGN: %s\n", node->assignment.target);
-    print_indent(indent + 1, output);
-    fprintf(output, "VALUE:\n");
-    visualize_ast_with_indent(node->assignment.value, indent + 2, output);
+    fprintf(output, "\"target\": ");
+    print_json_string(node->assignment.target, output);
+    fprintf(output, ",\n");
+    print_indent(indent, output);
+    fprintf(output, "\"value\":\n");
+    visualize_ast_json(node->assignment.value, indent + 1, output);
+    break;
+
+  case NODE_BINARY_OPERATION:
+    fprintf(output, "\"BIN_OP\",\n");
+    print_indent(indent, output);
+    fprintf(output, "\"op\": ");
+    print_json_string(node->binary_op.op_type, output);
+    fprintf(output, ",\n");
+    print_indent(indent, output);
+    fprintf(output, "\"left\":\n");
+    visualize_ast_json(node->binary_op.left, indent + 1, output);
+    fprintf(output, ",\n");
+    print_indent(indent, output);
+    fprintf(output, "\"right\":\n");
+    visualize_ast_json(node->binary_op.right, indent + 1, output);
     break;
 
   case NODE_IF_STATEMENT:
+    fprintf(output, "\"IF\",\n");
     print_indent(indent, output);
-    fprintf(output, "IF\n");
-    print_indent(indent + 1, output);
-    fprintf(output, "CONDITION:\n");
-    visualize_ast_with_indent(node->if_stmt.condition, indent + 2, output);
-    print_indent(indent + 1, output);
-    fprintf(output, "THEN:\n");
-    visualize_ast_with_indent(node->if_stmt.then_branch, indent + 2, output);
+    fprintf(output, "\"condition\":\n");
+    visualize_ast_json(node->if_stmt.condition, indent + 1, output);
+    fprintf(output, ",\n");
+    print_indent(indent, output);
+    fprintf(output, "\"then\":\n");
+    visualize_ast_json(node->if_stmt.then_branch, indent + 1, output);
     if (node->if_stmt.else_branch) {
-      print_indent(indent + 1, output);
-      fprintf(output, "ELSE:\n");
-      visualize_ast_with_indent(node->if_stmt.else_branch, indent + 2, output);
-    }
-    break;
-
-  case NODE_BLOCK:
-    print_indent(indent, output);
-    fprintf(output, "BLOCK\n");
-    for (size_t i = 0; i < node->block.children.size; i++) {
-      visualize_ast_with_indent(node->block.children.items[i], indent + 1,
-                                output);
-    }
-    break;
-
-  case NODE_FUNCTION_DECLARATION:
-    print_indent(indent, output);
-    fprintf(output, "FUNC_DECL: %s (return type: %s)\n",
-            node->function_decl.name, node->function_decl.return_type);
-    print_indent(indent + 1, output);
-    fprintf(output, "PARAMS:\n");
-    for (size_t i = 0; i < node->function_decl.param_count; i++) {
-      print_indent(indent + 2, output);
-      fprintf(output, "%s: %s\n", node->function_decl.param_names[i],
-              node->function_decl.param_types[i]);
-    }
-    if (node->function_decl.body) {
-      print_indent(indent + 1, output);
-      fprintf(output, "BODY:\n");
-      visualize_ast_with_indent(node->function_decl.body, indent + 2, output);
+      fprintf(output, ",\n");
+      print_indent(indent, output);
+      fprintf(output, "\"else\":\n");
+      visualize_ast_json(node->if_stmt.else_branch, indent + 1, output);
+    } else {
+      fprintf(output, "\n");
     }
     break;
 
   case NODE_RETURN_STATEMENT:
-    print_indent(indent, output);
-    fprintf(output, "RETURN\n");
+    fprintf(output, "\"RETURN\"");
     if (node->return_stmt.value) {
-      print_indent(indent + 1, output);
-      fprintf(output, "VALUE:\n");
-      visualize_ast_with_indent(node->return_stmt.value, indent + 2, output);
+      fprintf(output, ",\n");
+      print_indent(indent, output);
+      fprintf(output, "\"value\":\n");
+      visualize_ast_json(node->return_stmt.value, indent + 1, output);
     } else {
-      print_indent(indent + 1, output);
-      fprintf(output, "NO VALUE\n");
+      fprintf(output, "\n");
     }
+    break;
+
+  case NODE_FUNCTION_DECLARATION:
+    fprintf(output, "\"FUNC_DECL\",\n");
+    print_indent(indent, output);
+    fprintf(output, "\"name\": ");
+    print_json_string(node->function_decl.name, output);
+    fprintf(output, ",\n");
+    print_indent(indent, output);
+    fprintf(output, "\"return_type\": ");
+    print_json_string(node->function_decl.return_type, output);
+    fprintf(output, ",\n");
+    print_indent(indent, output);
+    fprintf(output, "\"params\": [");
+    for (size_t i = 0; i < node->function_decl.param_count; i++) {
+      fprintf(output, "\n");
+      print_indent(indent + 1, output);
+      fprintf(output, "{ \"name\": ");
+      print_json_string(node->function_decl.param_names[i], output);
+      fprintf(output, ", \"type\": ");
+      print_json_string(node->function_decl.param_types[i], output);
+      fprintf(output, " }");
+      if (i + 1 < node->function_decl.param_count)
+        fprintf(output, ",");
+    }
+    print_indent(indent, output);
+    fprintf(output, "],\n");
+    print_indent(indent, output);
+    fprintf(output, "\"body\":\n");
+    visualize_ast_json(node->function_decl.body, indent + 1, output);
+    fprintf(output, "\n");
     break;
 
   case NODE_FUNCTION_CALL:
+    fprintf(output, "\"FUNC_CALL\",\n");
     print_indent(indent, output);
-    fprintf(output, "FUNC_CALL: %s\n", node->function_call.function_name);
-    if (node->function_call.arg_count > 0) {
-      print_indent(indent + 1, output);
-      fprintf(output, "ARGUMENTS:\n");
-      for (size_t i = 0; i < node->function_call.arg_count; i++) {
-        visualize_ast_with_indent(node->function_call.arguments[i], indent + 2,
-                                  output);
-      }
-    } else {
-      print_indent(indent + 1, output);
-      fprintf(output, "NO ARGUMENTS\n");
+    fprintf(output, "\"name\": ");
+    print_json_string(node->function_call.function_name, output);
+    fprintf(output, ",\n");
+    print_indent(indent, output);
+    fprintf(output, "\"args\": [\n");
+    for (size_t i = 0; i < node->function_call.arg_count; i++) {
+      visualize_ast_json(node->function_call.arguments[i], indent + 1, output);
+      if (i + 1 < node->function_call.arg_count)
+        fprintf(output, ",\n");
+      else
+        fprintf(output, "\n");
     }
+    print_indent(indent, output);
+    fprintf(output, "]\n");
+    break;
+
+  case NODE_BLOCK:
+    fprintf(output, "\"BLOCK\",\n");
+    print_indent(indent, output);
+    fprintf(output, "\"children\": [\n");
+    for (size_t i = 0; i < node->block.children.size; i++) {
+      visualize_ast_json(node->block.children.items[i], indent + 1, output);
+      if (i + 1 < node->block.children.size)
+        fprintf(output, ",\n");
+      else
+        fprintf(output, "\n");
+    }
+    print_indent(indent, output);
+    fprintf(output, "]\n");
     break;
 
   default:
-    print_indent(indent, output);
-    fprintf(output, "UNKNOWN NODE TYPE: %d\n", node->type);
+    fprintf(output, "\"UNKNOWN\"\n");
     break;
   }
+
+  indent--;
+  print_indent(indent, output);
+  fprintf(output, "}");
 }
 
 void visualize_ast(ASTNode *node, FILE *output) {
-  visualize_ast_with_indent(node, 0, output);
-}
-
-int save_ast_to_file(ASTNode *node, const char *filename) {
-  FILE *file = fopen(filename, "w");
-  if (!file) {
-    return -1;
-  }
-
-  visualize_ast(node, file);
-  fclose(file);
-  return 0;
+  visualize_ast_json(node, 0, output);
+  fprintf(output, "\n");
 }

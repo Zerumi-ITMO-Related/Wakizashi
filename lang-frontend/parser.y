@@ -191,7 +191,7 @@ expression
 
 /* a: Int, b: String */
 param_list
-    :                          // пустой список
+    : // пустой список
     {
         $$.names = NULL;
         $$.types = NULL;
@@ -232,9 +232,15 @@ param
 block
     : LBRACE statements RBRACE
     {
-        ASTNode *blk = create_block_node();
-        if ($2) add_child(blk, $2);
-        $$ = blk;
+        $$ = create_block_node();
+        if ($2 && ($2->type == NODE_PROGRAM || $2->type == NODE_BLOCK)) {
+            NodeList* children = &$2->block.children;
+            for (size_t i = 0; i < children->size; i++) {
+                add_child($$, children->items[i]);
+            }
+            children->size = 0;
+            free_node($2);
+        }
     }
 ;
 
