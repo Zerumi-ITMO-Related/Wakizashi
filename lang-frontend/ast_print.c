@@ -30,9 +30,8 @@ static void visualize_ast_with_indent(ASTNode *node, int indent, FILE *output) {
 
   case NODE_VARIABLE_DECLARATION:
     print_indent(indent, output);
-    fprintf(output, "VAR_DECL: %s (type: %s, global: %s)\n",
-            node->variable.name, node->variable.var_type,
-            node->variable.is_global ? "yes" : "no");
+    fprintf(output, "VAR_DECL: %s (type: %s)\n",
+            node->variable.name, node->variable.var_type);
     if (node->variable.initializer) {
       print_indent(indent + 1, output);
       fprintf(output, "INIT:\n");

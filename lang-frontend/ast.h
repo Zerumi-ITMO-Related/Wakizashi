@@ -35,7 +35,6 @@ struct ASTNode {
     struct {
       char *name;
       char *var_type;
-      int is_global; // 1 = глобальная (evere), 0 = локальная (lim)
       ASTNode *initializer; // Инициализатор переменной, может быть NULL
     } variable;
 
