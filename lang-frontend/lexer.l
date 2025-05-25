@@ -20,12 +20,16 @@ int line = 1;
 "Int"           { return INT; }
 "Boolean"       { return BOOLEAN; }
 "String"        { return STRING; }
+
 "Unit"          { return UNIT; }
+
+[0-9]+          { yylval.sval = strdup(yytext); return LIT_INT; }
+\"[^\"]*\"      { yylval.sval = strdup(yytext); return LIT_STRING; }
+"true"          { yylval.sval = strdup(yytext); return LIT_BOOLEAN; }
+"false"         { yylval.sval = strdup(yytext); return LIT_BOOLEAN; }
 
 [a-zA-Z_][a-zA-Z0-9_]* { yylval.sval = strdup(yytext); return IDENT; }
 
-[0-9]+          { yylval.ival = atoi(yytext); return LIT_INT; }
-\"[^\"]*\"      { yylval.sval = strdup(yytext); return LIT_STRING; }
 
 "="             { return ASSIGN; }
 ":"             { return COLON; }

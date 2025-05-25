@@ -16,7 +16,6 @@ extern ASTNode* ast_root;
 %}
 
 %union {
-    int ival;
     char* sval;
     ASTNode* node;
 
@@ -27,9 +26,9 @@ extern ASTNode* ast_root;
     } params;
 }
 
-%token <ival> LIT_INT
 %token <sval> IDENT
-%token <sval> LIT_STRING
+%token <sval> LIT_INT LIT_STRING
+%token <sval> LIT_BOOLEAN
 
 %token VAL FUN RETURN
 %token UNIT INT BOOLEAN STRING
@@ -176,11 +175,15 @@ expression
     }
     | LIT_INT
     {
-        $$ = create_literal_int($1);
+        $$ = create_literal($1, "Int");
     }
     | LIT_STRING
     {
-        $$ = create_literal_string($1);
+        $$ = create_literal($1, "String");
+    }
+    | LIT_BOOLEAN
+    {
+        $$ = create_literal($1, "Boolean");
     }
     | IDENT
     {

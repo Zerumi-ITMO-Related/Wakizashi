@@ -2,5 +2,6 @@ val b: Int = 14;
 
 fun main() : Unit {
     val a: Int = 10;
+    val c: String = "Hello, World!";
     print(a);
 }

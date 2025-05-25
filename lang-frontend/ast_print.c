@@ -1,5 +1,4 @@
 #include <stdio.h>
-#include <string.h>
 #include "ast.h"
 #include "ast_print.h"
 
@@ -47,41 +46,29 @@ static void visualize_ast_json(ASTNode *node, int indent, FILE *output) {
     break;
 
   case NODE_VARIABLE_DECLARATION:
-    fprintf(output, "\"VAR_DECL\",\n");
+    fprintf(output, "\"VAL_DECLARATION\",\n");
     print_indent(indent, output);
     fprintf(output, "\"name\": ");
     print_json_string(node->variable.name, output);
     fprintf(output, ",\n");
     print_indent(indent, output);
-    fprintf(output, "\"var_type\": ");
+    fprintf(output, "\"valType\": ");
     print_json_string(node->variable.var_type, output);
-    if (node->variable.initializer) {
-      fprintf(output, ",\n");
-      print_indent(indent, output);
-      fprintf(output, "\"initializer\":\n");
-      visualize_ast_json(node->variable.initializer, indent + 1, output);
-      fprintf(output, "\n");
-    } else {
-      fprintf(output, "\n");
-    }
+    fprintf(output, ",\n");
+    print_indent(indent, output);
+    fprintf(output, "\"initializer\":\n");
+    visualize_ast_json(node->variable.initializer, indent + 1, output);
+    fprintf(output, "\n");
     break;
 
   case NODE_LITERAL:
     fprintf(output, "\"LITERAL\",\n");
     print_indent(indent, output);
     fprintf(output, "\"value\": ");
-    if (strcmp(node->literal.type, "int") == 0) {
-      fprintf(output, "%d,\n", node->literal.int_value);
-      print_indent(indent, output);
-      fprintf(output, "\"value_type\": \"int\"\n");
-    } else if (strcmp(node->literal.type, "string") == 0) {
-      print_json_string(node->literal.string_value, output);
-      fprintf(output, ",\n");
-      print_indent(indent, output);
-      fprintf(output, "\"value_type\": \"string\"\n");
-    } else {
-      fprintf(output, "null\n");
-    }
+    print_json_string(node->literal.string_value, output);
+    fprintf(output, ",\n");
+    print_indent(indent, output);
+    fprintf(output, "\"valType\": \"%s\"\n", node->literal.type);
     break;
 
   case NODE_IDENTIFIER:
@@ -90,17 +77,6 @@ static void visualize_ast_json(ASTNode *node, int indent, FILE *output) {
     fprintf(output, "\"name\": ");
     print_json_string(node->identifier.name, output);
     fprintf(output, "\n");
-    break;
-
-  case NODE_ASSIGNMENT:
-    fprintf(output, "\"ASSIGN\",\n");
-    print_indent(indent, output);
-    fprintf(output, "\"target\": ");
-    print_json_string(node->assignment.target, output);
-    fprintf(output, ",\n");
-    print_indent(indent, output);
-    fprintf(output, "\"value\":\n");
-    visualize_ast_json(node->assignment.value, indent + 1, output);
     break;
 
   case NODE_BINARY_OPERATION:
@@ -150,13 +126,13 @@ static void visualize_ast_json(ASTNode *node, int indent, FILE *output) {
     break;
 
   case NODE_FUNCTION_DECLARATION:
-    fprintf(output, "\"FUNC_DECL\",\n");
+    fprintf(output, "\"FUN_DECLARATION\",\n");
     print_indent(indent, output);
     fprintf(output, "\"name\": ");
     print_json_string(node->function_decl.name, output);
     fprintf(output, ",\n");
     print_indent(indent, output);
-    fprintf(output, "\"return_type\": ");
+    fprintf(output, "\"returnType\": ");
     print_json_string(node->function_decl.return_type, output);
     fprintf(output, ",\n");
     print_indent(indent, output);
@@ -166,7 +142,7 @@ static void visualize_ast_json(ASTNode *node, int indent, FILE *output) {
       print_indent(indent + 1, output);
       fprintf(output, "{ \"name\": ");
       print_json_string(node->function_decl.param_names[i], output);
-      fprintf(output, ", \"type\": ");
+      fprintf(output, ", \"paramType\": ");
       print_json_string(node->function_decl.param_types[i], output);
       fprintf(output, " }");
       if (i + 1 < node->function_decl.param_count)
@@ -181,7 +157,7 @@ static void visualize_ast_json(ASTNode *node, int indent, FILE *output) {
     break;
 
   case NODE_FUNCTION_CALL:
-    fprintf(output, "\"FUNC_CALL\",\n");
+    fprintf(output, "\"FUN_CALL\",\n");
     print_indent(indent, output);
     fprintf(output, "\"name\": ");
     print_json_string(node->function_call.function_name, output);

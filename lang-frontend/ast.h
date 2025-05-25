@@ -12,7 +12,6 @@ typedef enum {
   NODE_BINARY_OPERATION,
   NODE_LITERAL,
   NODE_IDENTIFIER,
-  NODE_ASSIGNMENT,
   NODE_IF_STATEMENT,
   NODE_RETURN_STATEMENT,
   NODE_BLOCK,
@@ -35,12 +34,12 @@ struct ASTNode {
     struct {
       char *name;
       char *var_type;
-      ASTNode *initializer; // Инициализатор переменной, может быть NULL
+      ASTNode *initializer;
     } variable;
 
     // Для NODE_BINARY_OPERATION
     struct {
-      char *op_type; // Изменил имя с operator на op_type
+      char *op_type;
       ASTNode *left;
       ASTNode *right;
     } binary_op;
@@ -52,7 +51,7 @@ struct ASTNode {
         float float_value;
         char *string_value;
       };
-      char *type; // "int", "float", "string"
+      char *type;
     } literal;
 
     // Для NODE_IDENTIFIER
@@ -60,33 +59,12 @@ struct ASTNode {
       char *name;
     } identifier;
 
-    // Для NODE_ASSIGNMENT
-    struct {
-      char *target;
-      ASTNode *value;
-    } assignment;
-
     // Для NODE_IF_STATEMENT
     struct {
       ASTNode *condition;
       ASTNode *then_branch;
       ASTNode *else_branch; // может быть NULL
     } if_stmt;
-
-    // Для NODE_WHILE_LOOP
-    struct {
-      ASTNode *condition;
-      ASTNode *body;
-    } while_loop;
-
-    // Для NODE_ROUND_LOOP
-    struct {
-      char *variable;
-      ASTNode *start;
-      ASTNode *end;
-      ASTNode *step;
-      ASTNode *body;
-    } round_loop;
 
     // Для NODE_BLOCK и NODE_PROGRAM
     struct {
@@ -126,9 +104,7 @@ ASTNode *create_variable_declaration(const char *name, const char *var_type,
 ASTNode *create_binary_operation(const char *op_type, ASTNode *left,
                                  ASTNode *right);
 
-ASTNode *create_literal_int(int value);
-
-ASTNode *create_literal_string(const char *value);
+ASTNode *create_literal(const char *value, const char *type);
 
 ASTNode *create_identifier_node(const char *name);
 

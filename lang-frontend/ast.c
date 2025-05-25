@@ -78,35 +78,13 @@ ASTNode *create_binary_operation(const char *op_type, ASTNode *left,
   return node;
 }
 
-// Создание узла литерала целого числа
-ASTNode *create_literal_int(int value) {
-  ASTNode *node = (ASTNode *)malloc(sizeof(ASTNode));
-  if (node) {
-    node->type = NODE_LITERAL;
-    node->literal.int_value = value;
-    node->literal.type = strdup_custom("int");
-  }
-  return node;
-}
-
-// Создание узла литерала числа с плавающей точкой
-ASTNode *create_literal_float(float value) {
-  ASTNode *node = (ASTNode *)malloc(sizeof(ASTNode));
-  if (node) {
-    node->type = NODE_LITERAL;
-    node->literal.float_value = value;
-    node->literal.type = strdup_custom("float");
-  }
-  return node;
-}
-
-// Создание узла литерала строки
-ASTNode *create_literal_string(const char *value) {
+// Создание узла литерала
+ASTNode *create_literal(const char * value, const char *type) {
   ASTNode *node = (ASTNode *)malloc(sizeof(ASTNode));
   if (node) {
     node->type = NODE_LITERAL;
     node->literal.string_value = strdup_custom(value);
-    node->literal.type = strdup_custom("string");
+    node->literal.type = strdup_custom(type);
   }
   return node;
 }
@@ -117,17 +95,6 @@ ASTNode *create_identifier_node(const char *name) {
   if (node) {
     node->type = NODE_IDENTIFIER;
     node->identifier.name = strdup_custom(name);
-  }
-  return node;
-}
-
-// Создание узла присваивания
-ASTNode *create_assignment_node(const char *target, ASTNode *value) {
-  ASTNode *node = (ASTNode *)malloc(sizeof(ASTNode));
-  if (node) {
-    node->type = NODE_ASSIGNMENT;
-    node->assignment.target = strdup_custom(target);
-    node->assignment.value = value;
   }
   return node;
 }
@@ -239,11 +206,6 @@ void free_node(ASTNode *node) {
 
   case NODE_IDENTIFIER:
     free(node->identifier.name);
-    break;
-
-  case NODE_ASSIGNMENT:
-    free(node->assignment.target);
-    free_node(node->assignment.value);
     break;
 
   case NODE_IF_STATEMENT:
