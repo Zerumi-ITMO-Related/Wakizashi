@@ -1,0 +1,60 @@
+{
+  "type": "PROGRAM",
+  "children": [
+    {
+      "type": "VAL_DECLARATION",
+      "name": "b",
+      "valType": "Int",
+      "initializer":
+        {
+          "type": "LITERAL",
+          "value": "14",
+          "valType": "Int"
+        }
+    },
+    {
+      "type": "FUN_DECLARATION",
+      "name": "main",
+      "returnType": "Unit",
+      "params": [      ],
+      "body":
+        {
+          "type": "BLOCK",
+          "children": [
+            {
+              "type": "VAL_DECLARATION",
+              "name": "a",
+              "valType": "Int",
+              "initializer":
+                {
+                  "type": "LITERAL",
+                  "value": "10",
+                  "valType": "Int"
+                }
+            },
+            {
+              "type": "VAL_DECLARATION",
+              "name": "c",
+              "valType": "String",
+              "initializer":
+                {
+                  "type": "LITERAL",
+                  "value": "\"Hello, World!\"",
+                  "valType": "String"
+                }
+            },
+            {
+              "type": "FUN_CALL",
+              "name": "print",
+              "args": [
+                {
+                  "type": "IDENT",
+                  "name": "a"
+                }
+              ]
+            }
+          ]
+        }
+    }
+  ]
+}
