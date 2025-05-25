@@ -1,4 +1,5 @@
 import kotlinx.serialization.json.Json
+import semantic.checkASTSemantic
 
 private val json = Json {
     classDiscriminator = "type"
@@ -6,5 +7,6 @@ private val json = Json {
 
 fun main() {
     val ast = json.decodeFromString<ASTNode>(generateSequence { readlnOrNull() }.joinToString("\n"))
-    println(ast)
+    val isValidAst = checkASTSemantic(ast)
+    println(isValidAst)
 }
