@@ -6,6 +6,7 @@ private val json = Json {
 }
 
 fun main() {
+    println("Compiler")
     val ast = json.decodeFromString<ASTNode>(generateSequence { readlnOrNull() }.joinToString("\n"))
     val isValidAst = checkASTSemantic(ast)
     println(isValidAst)

@@ -3,6 +3,7 @@ package semantic
 import ASTNode
 import ASTVisitor
 import error.TypeMismatchException
+import error.UnknownNodeInASTException
 import visitAST
 
 fun checkASTSemantic(ast: ASTNode): Result<SemanticContext> = ASTVisitor(
@@ -126,5 +127,5 @@ fun visitUnknownNode(
     ast: ASTNode.UnknownNode, state: SemanticContext, astVisitor: ASTVisitor<SemanticContext>
 ): Result<SemanticContext> {
     println("Visit Unknown node")
-    return Result.success(state)
+    return Result.failure(UnknownNodeInASTException())
 }
