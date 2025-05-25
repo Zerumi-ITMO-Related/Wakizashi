@@ -11,6 +11,7 @@
             <option value="$PROJECT_DIR$/asm" />
             <option value="$PROJECT_DIR$/comp" />
             <option value="$PROJECT_DIR$/isa" />
+            <option value="$PROJECT_DIR$/lang-backend" />
           </set>
         </option>
       </GradleProjectSettings>
