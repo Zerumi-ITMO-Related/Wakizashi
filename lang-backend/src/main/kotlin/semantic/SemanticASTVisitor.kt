@@ -18,31 +18,15 @@ fun checkASTSemantic(ast: ASTNode): Result<SemanticContext> = ASTVisitor(
     visitIfNode = ::visitIfNode,
     visitLiteralNode = ::visitLiteralNode,
     visitUnknownNode = ::visitUnknownNode
-).visitAST(ast, SemanticContext.ProgramContext(""))
+).visitAST(ast, SemanticContext())
 
 fun visitProgramNode(
     ast: ASTNode.ProgramNode, state: SemanticContext, astVisitor: ASTVisitor<SemanticContext>
 ): Result<SemanticContext> {
     println("Visiting Program node")
     return ast.children.fold(Result.success(state)) { ctx, child ->
-        ctx.fold(onSuccess = { astVisitor.visitAST(child, it) }, onFailure = { ctx })
+        ctx.fold(onSuccess = { astVisitor.visitAST(child, it) }, onFailure = { Result.failure(it) })
     }
-}
-
-fun visitFunctionDeclarationNode(
-    ast: ASTNode.FunctionDeclarationNode, state: SemanticContext, astVisitor: ASTVisitor<SemanticContext>
-): Result<SemanticContext> {
-    println("Visiting Function declaration node")
-    val bodyContext = astVisitor.visitAST(ast.body, state)
-    return Result.success(state)
-}
-
-fun visitReturnNode(
-    ast: ASTNode.ReturnNode, state: SemanticContext, astVisitor: ASTVisitor<SemanticContext>
-): Result<SemanticContext> {
-    println("Visiting return node")
-    astVisitor.visitAST(ast.value, state)
-    return Result.success(state)
 }
 
 fun visitBlockNode(
@@ -50,25 +34,47 @@ fun visitBlockNode(
 ): Result<SemanticContext> {
     println("Visiting block node")
     return ast.children.fold(Result.success(state)) { ctx, child ->
-        ctx.fold(onSuccess = { astVisitor.visitAST(child, it) }, onFailure = { ctx })
+        ctx.fold(onSuccess = { astVisitor.visitAST(child, it) }, onFailure = { Result.failure(it) })
     }
+}
+
+fun visitFunctionDeclarationNode(
+    ast: ASTNode.FunctionDeclarationNode, state: SemanticContext, astVisitor: ASTVisitor<SemanticContext>
+): Result<SemanticContext> {
+    println("Visiting Function declaration node")
+    val name = ast.name
+    val params = ast.params.map { VariableDeclaration(it.name, it.paramType) }
+    val returnType = ast.returnType
+    astVisitor.visitAST(ast.body, state).onFailure { return Result.failure(it) }
+    return Result.success(state.withFunction(FunctionDeclaration(name, params, returnType)))
+}
+
+fun visitReturnNode(
+    ast: ASTNode.ReturnNode, state: SemanticContext, astVisitor: ASTVisitor<SemanticContext>
+): Result<SemanticContext> {
+    println("Visiting return node")
+    astVisitor.visitAST(ast.value, state).onFailure { return Result.failure(it) }
+    return Result.success(state)
 }
 
 fun visitValueDeclarationNode(
     ast: ASTNode.ValueDeclarationNode, state: SemanticContext, astVisitor: ASTVisitor<SemanticContext>
 ): Result<SemanticContext> {
     println("Visiting value declaration node")
-    // value declaration should be only binop or literal or function call
-    val value = astVisitor.visitAST(ast.initializer, state)
-    return Result.success(state)
+    val ident = ast.name
+    val valueType = inferType(ast, state).onFailure { return Result.failure(it) }
+    val initType = inferType(ast.initializer, state).onFailure { return Result.failure(it) }
+    astVisitor.visitAST(ast.initializer, state).onFailure { return Result.failure(it) }
+    return if (valueType != initType) Result.failure(TypeMismatchException())
+    else Result.success(state.withVariable(VariableDeclaration(ident, ast.valType)))
 }
 
 fun visitBinaryOperationNode(
     ast: ASTNode.BinaryOperationNode, state: SemanticContext, astVisitor: ASTVisitor<SemanticContext>
 ): Result<SemanticContext> {
     println("Visiting value declaration node")
-    astVisitor.visitAST(ast.left, state)
-    astVisitor.visitAST(ast.right, state)
+    astVisitor.visitAST(ast.left, state).onFailure { return Result.failure(it) }
+    astVisitor.visitAST(ast.right, state).onFailure { return Result.failure(it) }
     return Result.success(state)
 }
 
@@ -77,10 +83,7 @@ fun visitFunctionCallNode(
 ): Result<SemanticContext> {
     println("Visiting function call node")
     ast.args.fold(Result.success(state)) { ctx, child ->
-        ctx.fold(
-            onSuccess = { astVisitor.visitAST(child, it) },
-            onFailure = { ctx }
-        )
+        ctx.fold(onSuccess = { astVisitor.visitAST(child, it) }, onFailure = { ctx })
     }
     return Result.success(state)
 }
@@ -97,9 +100,9 @@ fun visitIfNode(
     ast: ASTNode.IfNode, state: SemanticContext, astVisitor: ASTVisitor<SemanticContext>
 ): Result<SemanticContext> {
     println("Visiting if node")
-    astVisitor.visitAST(ast.condition, state)
-    astVisitor.visitAST(ast.then, state)
-    if (ast.`else` != null) astVisitor.visitAST(ast.`else`, state)
+    astVisitor.visitAST(ast.condition, state).onFailure { return Result.failure(it) }
+    astVisitor.visitAST(ast.then, state).onFailure { return Result.failure(it) }
+    if (ast.`else` != null) astVisitor.visitAST(ast.`else`, state).onFailure { return Result.failure(it) }
     return Result.success(state)
 }
 
@@ -107,20 +110,7 @@ fun visitLiteralNode(
     ast: ASTNode.LiteralNode, state: SemanticContext, astVisitor: ASTVisitor<SemanticContext>
 ): Result<SemanticContext> {
     println("Visiting Literal node")
-    // infer type
-    val value = ast.value
-    val literalType = when {
-        Regex("[0-9]+").matches(value) -> LiteralTypes.INT
-        Regex("\"[^\"]*\"").matches(value) -> LiteralTypes.STRING
-        Regex("true|false").matches(value) -> LiteralTypes.BOOLEAN
-        Regex("Unit").matches(value) -> LiteralTypes.UNIT
-        else -> return Result.failure(TypeMismatchException())
-    }
-    val requestedType = LiteralTypes.valueOf(ast.valType.uppercase())
-
-    println("Expected Type: $requestedType, actual: $literalType")
-
-    return if (requestedType == literalType) Result.success(state) else Result.failure(TypeMismatchException())
+    return Result.success(state)
 }
 
 fun visitUnknownNode(

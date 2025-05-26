@@ -1,13 +1,26 @@
 package semantic
 
-sealed class SemanticContext {
-    data class ProgramContext(val variables : String) : SemanticContext()
-    data class LiteralContext(val value: String, val valType: String) : SemanticContext()
+data class SemanticContext(
+    val variables: List<VariableDeclaration> = emptyList(),
+    val functions: List<FunctionDeclaration> = emptyList(),
+) {
+    fun withVariable(variableDeclaration: VariableDeclaration) = copy(
+        variables = variables.plus(variableDeclaration)
+    )
+
+    fun withFunction(functionDeclaration: FunctionDeclaration) = copy(
+        functions = functions.plus(functionDeclaration)
+    )
 }
 
+data class VariableDeclaration(
+    val name: String, val type: String
+)
+
+data class FunctionDeclaration(
+    val name: String, val params: List<VariableDeclaration>, val returnType: String
+)
+
 enum class LiteralTypes {
-    INT,
-    STRING,
-    BOOLEAN,
-    UNIT,
+    INT, STRING, BOOLEAN, UNIT,
 }

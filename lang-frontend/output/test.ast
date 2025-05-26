@@ -34,6 +34,32 @@
             },
             {
               "type": "VAL_DECLARATION",
+              "name": "b",
+              "valType": "Int",
+              "initializer":
+                {
+                  "type": "BIN_OP",
+                  "op": "+",
+                  "left":
+                    {
+                      "type": "FUN_CALL",
+                      "name": "factorial",
+                      "args": [
+                        {
+                          "type": "IDENT",
+                          "name": "a"
+                        }
+                      ]
+                    },
+                  "right":
+                    {
+                      "type": "LITERAL",
+                      "value": "12",
+                      "valType": "Int"
+                    }                }
+            },
+            {
+              "type": "VAL_DECLARATION",
               "name": "c",
               "valType": "String",
               "initializer":
@@ -52,7 +78,109 @@
                   "name": "a"
                 }
               ]
+            },
+            {
+              "type": "FUN_CALL",
+              "name": "print",
+              "args": [
+                {
+                  "type": "IDENT",
+                  "name": "b"
+                }
+              ]
+            },
+            {
+              "type": "FUN_CALL",
+              "name": "print",
+              "args": [
+                {
+                  "type": "IDENT",
+                  "name": "c"
+                }
+              ]
             }
+          ]
+        }
+    },
+    {
+      "type": "FUN_DECLARATION",
+      "name": "factorial",
+      "returnType": "Int",
+      "params": [
+        { "name": "n", "paramType": "Int" }      ],
+      "body":
+        {
+          "type": "BLOCK",
+          "children": [
+            {
+              "type": "IF",
+              "condition":
+                {
+                  "type": "BIN_OP",
+                  "op": "==",
+                  "left":
+                    {
+                      "type": "IDENT",
+                      "name": "n"
+                    },
+                  "right":
+                    {
+                      "type": "LITERAL",
+                      "value": "0",
+                      "valType": "Int"
+                    }                },
+              "then":
+                {
+                  "type": "BLOCK",
+                  "children": [
+                    {
+                      "type": "RETURN",
+                      "value":
+                        {
+                          "type": "LITERAL",
+                          "value": "1",
+                          "valType": "Int"
+                        }                    }
+                  ]
+                },
+              "else":
+                {
+                  "type": "BLOCK",
+                  "children": [
+                    {
+                      "type": "RETURN",
+                      "value":
+                        {
+                          "type": "BIN_OP",
+                          "op": "*",
+                          "left":
+                            {
+                              "type": "IDENT",
+                              "name": "n"
+                            },
+                          "right":
+                            {
+                              "type": "FUN_CALL",
+                              "name": "factorial",
+                              "args": [
+                                {
+                                  "type": "BIN_OP",
+                                  "op": "-",
+                                  "left":
+                                    {
+                                      "type": "IDENT",
+                                      "name": "n"
+                                    },
+                                  "right":
+                                    {
+                                      "type": "LITERAL",
+                                      "value": "1",
+                                      "valType": "Int"
+                                    }                                }
+                              ]
+                            }                        }                    }
+                  ]
+                }            }
           ]
         }
     }
