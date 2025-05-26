@@ -65,7 +65,7 @@ fun visitValueDeclarationNode(
     val valueType = inferType(ast, state).onFailure { return Result.failure(it) }
     val initType = inferType(ast.initializer, state).onFailure { return Result.failure(it) }
     astVisitor.visitAST(ast.initializer, state).onFailure { return Result.failure(it) }
-    return if (valueType != initType) Result.failure(TypeMismatchException())
+    return if (valueType != initType) Result.failure(TypeMismatchException(ast.line, ast.column))
     else Result.success(state.withVariable(VariableDeclaration(ident, ast.valType)))
 }
 
@@ -117,5 +117,5 @@ fun visitUnknownNode(
     ast: ASTNode.UnknownNode, state: SemanticContext, astVisitor: ASTVisitor<SemanticContext>
 ): Result<SemanticContext> {
     println("Visit Unknown node")
-    return Result.failure(UnknownNodeInASTException())
+    return Result.failure(UnknownNodeInASTException(ast.line, ast.column))
 }

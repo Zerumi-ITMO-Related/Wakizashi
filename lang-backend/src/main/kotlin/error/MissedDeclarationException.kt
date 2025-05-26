@@ -1,3 +1,3 @@
 package error
 
-class MissedDeclarationException : RuntimeException()
+class MissedDeclarationException(line: Int, column: Int) : ASTValidationException(line, column)

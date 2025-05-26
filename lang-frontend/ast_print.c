@@ -30,6 +30,10 @@ static void visualize_ast_json(ASTNode *node, int indent, FILE *output) {
   indent++;
 
   print_indent(indent, output);
+  fprintf(output, "\"line\": %d,\n", node->line);
+  print_indent(indent, output);
+  fprintf(output, "\"column\": %d,\n", node->column);
+  print_indent(indent, output);
   fprintf(output, "\"type\": ");
   switch (node->type) {
   case NODE_PROGRAM:

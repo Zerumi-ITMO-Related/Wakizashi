@@ -1,7 +1,7 @@
 #include "ast.h"
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdio.h>
 
 // Глобальная переменная для хранения корня AST
 ASTNode *ast_root = NULL;
@@ -43,10 +43,12 @@ char *strdup_custom(const char *str) {
 }
 
 // Создание узла программы
-ASTNode *create_program_node() {
+ASTNode *create_program_node(int line, int column) {
   ASTNode *node = (ASTNode *)malloc(sizeof(ASTNode));
   if (node) {
     node->type = NODE_PROGRAM;
+    node->line = line;
+    node->column = column;
     init_node_list(&node->block.children);
   }
   return node;
@@ -54,9 +56,12 @@ ASTNode *create_program_node() {
 
 // Создание узла объявления переменной с инициализатором
 ASTNode *create_variable_declaration(const char *name, const char *var_type,
-                                     ASTNode *initializer) {
+                                     ASTNode *initializer, int line,
+                                     int column) {
   ASTNode *node = (ASTNode *)malloc(sizeof(ASTNode));
   if (node) {
+    node->line = line;
+    node->column = column;
     node->type = NODE_VARIABLE_DECLARATION;
     node->variable.name = strdup_custom(name);
     node->variable.var_type = strdup_custom(var_type);
@@ -67,9 +72,11 @@ ASTNode *create_variable_declaration(const char *name, const char *var_type,
 
 // Создание узла бинарной операции
 ASTNode *create_binary_operation(const char *op_type, ASTNode *left,
-                                 ASTNode *right) {
+                                 ASTNode *right, int line, int column) {
   ASTNode *node = (ASTNode *)malloc(sizeof(ASTNode));
   if (node) {
+    node->line = line;
+    node->column = column;
     node->type = NODE_BINARY_OPERATION;
     node->binary_op.op_type = strdup_custom(op_type);
     node->binary_op.left = left;
@@ -79,9 +86,12 @@ ASTNode *create_binary_operation(const char *op_type, ASTNode *left,
 }
 
 // Создание узла литерала
-ASTNode *create_literal(const char * value, const char *type) {
+ASTNode *create_literal(const char *value, const char *type, int line,
+                        int column) {
   ASTNode *node = (ASTNode *)malloc(sizeof(ASTNode));
   if (node) {
+    node->line = line;
+    node->column = column;
     node->type = NODE_LITERAL;
     node->literal.string_value = strdup_custom(value);
     node->literal.type = strdup_custom(type);
@@ -90,9 +100,11 @@ ASTNode *create_literal(const char * value, const char *type) {
 }
 
 // Создание узла идентификатора
-ASTNode *create_identifier_node(const char *name) {
+ASTNode *create_identifier_node(const char *name, int line, int column) {
   ASTNode *node = (ASTNode *)malloc(sizeof(ASTNode));
   if (node) {
+    node->line = line;
+    node->column = column;
     node->type = NODE_IDENTIFIER;
     node->identifier.name = strdup_custom(name);
   }
@@ -101,9 +113,11 @@ ASTNode *create_identifier_node(const char *name) {
 
 // Создание узла if-условия
 ASTNode *create_if_node(ASTNode *condition, ASTNode *then_branch,
-                        ASTNode *else_branch) {
+                        ASTNode *else_branch, int line, int column) {
   ASTNode *node = (ASTNode *)malloc(sizeof(ASTNode));
   if (node) {
+    node->line = line;
+    node->column = column;
     node->type = NODE_IF_STATEMENT;
     node->if_stmt.condition = condition;
     node->if_stmt.then_branch = then_branch;
@@ -113,9 +127,11 @@ ASTNode *create_if_node(ASTNode *condition, ASTNode *then_branch,
 }
 
 // Создание узла блока
-ASTNode *create_block_node() {
+ASTNode *create_block_node(int line, int column) {
   ASTNode *node = (ASTNode *)malloc(sizeof(ASTNode));
   if (node) {
+    node->line = line;
+    node->column = column;
     node->type = NODE_BLOCK;
     init_node_list(&node->block.children);
   }
@@ -124,41 +140,53 @@ ASTNode *create_block_node() {
 
 ASTNode *create_function_declaration(const char *name, char **param_names,
                                      char **param_types, size_t param_count,
-                                     const char *return_type, ASTNode *body) {
+                                     const char *return_type, ASTNode *body,
+                                     int line, int column) {
   // printf("Creating function declaration node for function: %s\n", name);
   ASTNode *node = malloc(sizeof(ASTNode));
-  node->type = NODE_FUNCTION_DECLARATION;
-  node->function_decl.name = strdup(name);
-  node->function_decl.param_names = param_names;
-  node->function_decl.param_types = param_types;
-  node->function_decl.param_count = param_count;
-  node->function_decl.return_type = strdup(return_type);
-  node->function_decl.body = body;
+  if (node) {
+    node->type = NODE_FUNCTION_DECLARATION;
+    node->line = line;
+    node->column = column;
+    node->function_decl.name = strdup(name);
+    node->function_decl.param_names = param_names;
+    node->function_decl.param_types = param_types;
+    node->function_decl.param_count = param_count;
+    node->function_decl.return_type = strdup(return_type);
+    node->function_decl.body = body;
+  }
   return node;
 }
 
-ASTNode *create_return_statement(ASTNode *value) {
+ASTNode *create_return_statement(ASTNode *value, int line, int column) {
   ASTNode *node = malloc(sizeof(ASTNode));
-  node->type = NODE_RETURN_STATEMENT;
-  node->return_stmt.value = value;
+  if (node) {
+    node->type = NODE_RETURN_STATEMENT;
+    node->line = line;
+    node->column = column;
+    node->return_stmt.value = value;
+  }
   return node;
 }
 
-ASTNode *create_function_call(const char *name, ASTNode *arg) {
-    // printf("Creating function call node for function: %s\n", name);
-    ASTNode *node = malloc(sizeof(ASTNode));
+ASTNode *create_function_call(const char *name, ASTNode *arg, int line,
+                              int column) {
+  ASTNode *node = malloc(sizeof(ASTNode));
+  if (node) {
     node->type = NODE_FUNCTION_CALL;
+    node->line = line;
+    node->column = column;
     node->function_call.function_name = strdup_custom(name);
 
     node->function_call.arg_count = (arg != NULL) ? 1 : 0;
-    node->function_call.arguments = (arg != NULL)
-        ? malloc(sizeof(ASTNode *)) : NULL;
+    node->function_call.arguments =
+        (arg != NULL) ? malloc(sizeof(ASTNode *)) : NULL;
 
     if (arg != NULL) {
-        node->function_call.arguments[0] = arg;
+      node->function_call.arguments[0] = arg;
     }
-
-    return node;
+  }
+  return node;
 }
 
 // Добавление дочернего узла

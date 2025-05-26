@@ -29,6 +29,8 @@ typedef struct {
 // Структура для узла AST
 struct ASTNode {
   NodeType type;
+  int line; // номер строки в исходном коде
+  int column; // номер столбца в исходном коде
   union {
     // Для NODE_VARIABLE_DECLARATION
     struct {
@@ -96,37 +98,37 @@ struct ASTNode {
 };
 
 // Функции для создания узлов
-ASTNode *create_program_node();
+ASTNode *create_program_node(int line, int column);
 
 ASTNode *create_variable_declaration(const char *name, const char *var_type,
-                                     ASTNode *initializer);
+                                     ASTNode *initializer, int line, int column);
 
 ASTNode *create_binary_operation(const char *op_type, ASTNode *left,
-                                 ASTNode *right);
+                                 ASTNode *right, int line, int column);
 
-ASTNode *create_literal(const char *value, const char *type);
+ASTNode *create_literal(const char *value, const char *type, int line, int column);
 
-ASTNode *create_identifier_node(const char *name);
+ASTNode *create_identifier_node(const char *name, int line, int column);
 
-ASTNode *create_assignment_node(const char *target, ASTNode *value);
+ASTNode *create_assignment_node(const char *target, ASTNode *value, int line, int column);
 
 ASTNode *create_if_node(ASTNode *condition, ASTNode *then_branch,
-                        ASTNode *else_branch);
+                        ASTNode *else_branch, int line, int column);
 
-ASTNode *create_while_node(ASTNode *condition, ASTNode *body);
+ASTNode *create_while_node(ASTNode *condition, ASTNode *body, int line, int column);
 
 ASTNode *create_round_node(const char *variable, ASTNode *start, ASTNode *end,
-                           ASTNode *step, ASTNode *body);
+                           ASTNode *step, ASTNode *body, int line, int column);
 
-ASTNode *create_block_node();
+ASTNode *create_block_node(int line, int column);
 
 ASTNode *create_function_declaration(const char *name, char **param_names,
                                      char **param_types, size_t param_count,
-                                     const char *return_type, ASTNode *body);
+                                     const char *return_type, ASTNode *body, int line, int column);
 
-ASTNode *create_return_statement(ASTNode *value);
+ASTNode *create_return_statement(ASTNode *value, int line, int column);
 
-ASTNode *create_function_call(const char *name, ASTNode *arg);
+ASTNode *create_function_call(const char *name, ASTNode *arg, int line, int column);
 
 // Функции для работы со списком узлов
 void add_child(ASTNode *parent, ASTNode *child);

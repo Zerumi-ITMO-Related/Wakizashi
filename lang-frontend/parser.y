@@ -1,3 +1,5 @@
+%locations
+
 %{
 #include "ast.h"
 #include <stdio.h>
@@ -41,7 +43,7 @@ extern ASTNode* ast_root;
 %type <params> param param_list
 
 %type <node> program statements statement declaration_statement
-%type <node> expression if_statement function_call retutn_statement
+%type <node> expression if_statement function_call return_statement
 %type <node> block
 
 %right '='
@@ -64,7 +66,7 @@ statements
         if ($1->type == NODE_PROGRAM) {
             program = $1;
         } else {
-            program = create_program_node();
+            program = create_program_node(@1.first_line, @1.first_column);
             add_child(program, $1);
         }
         if ($2) {
@@ -76,7 +78,7 @@ statements
     }
     | statement
     {
-        ASTNode *program = create_program_node();
+        ASTNode *program = create_program_node(@1.first_line, @1.first_column);
         add_child(program, $1);
         $$ = program;
     }
@@ -88,27 +90,27 @@ statement
     : declaration_statement         { $$ = $1; }
     | if_statement                  { $$ = $1; }
     | function_call SEMICOLON       { $$ = $1; }
-    | retutn_statement SEMICOLON    { $$ = $1; }
+    | return_statement SEMICOLON    { $$ = $1; }
 ;
 
 /* factorial(2 + 2) */
 function_call
     : IDENT LPAREN expression RPAREN
     {
-        $$ = create_function_call($1, $3);
+        $$ = create_function_call($1, $3, @1.first_line, @1.first_column);
     }
 ;
 
 /* return 2 + 2 */
-retutn_statement
-    : RETURN                   { $$ = create_return_statement(NULL); }
-    | RETURN expression        { $$ = create_return_statement($2); }
+return_statement
+    : RETURN                   { $$ = create_return_statement(NULL, @1.first_line, @1.first_column); }
+    | RETURN expression        { $$ = create_return_statement($2, @1.first_line, @1.first_column); }
 ;
 
 /* val a: Int = 4 */
 declaration_statement
     : VAL IDENT COLON type ASSIGN expression SEMICOLON {
-        $$ = create_variable_declaration($2, $4, $6);
+        $$ = create_variable_declaration($2, $4, $6, @1.first_line, @1.first_column);
     }
     | FUN IDENT LPAREN param_list RPAREN COLON type block 
     {
@@ -118,7 +120,9 @@ declaration_statement
                 $4.types,
                 $4.count,
                 $7,
-                $8
+                $8,
+                @1.first_line,
+                @1.first_column
             );
         }
 ;
@@ -127,11 +131,11 @@ declaration_statement
 if_statement
     : IF LPAREN expression RPAREN block
     { 
-        $$ = create_if_node($3, $5, NULL);
+        $$ = create_if_node($3, $5, NULL, @1.first_line, @1.first_column);
     }
     | IF LPAREN expression RPAREN block ELSE block
     { 
-        $$ = create_if_node($3, $5, $7);
+        $$ = create_if_node($3, $5, $7, @1.first_line, @1.first_column);
     }
 ;
 
@@ -139,31 +143,31 @@ if_statement
 expression
     : expression PLUS expression 
     {
-        $$ = create_binary_operation("+", $1, $3);
+        $$ = create_binary_operation("+", $1, $3, @2.first_line, @2.first_column);
     }
     | expression MINUS expression
     {
-        $$ = create_binary_operation("-", $1, $3);
+        $$ = create_binary_operation("-", $1, $3, @2.first_line, @2.first_column);
     }
     | expression MUL expression
     {
-        $$ = create_binary_operation("*", $1, $3);
+        $$ = create_binary_operation("*", $1, $3, @2.first_line, @2.first_column);
     }
     | expression DIV expression
     {
-        $$ = create_binary_operation("/", $1, $3);
+        $$ = create_binary_operation("/", $1, $3, @2.first_line, @2.first_column);
     }
     | expression LESS expression
     {
-        $$ = create_binary_operation("<", $1, $3);
+        $$ = create_binary_operation("<", $1, $3, @2.first_line, @2.first_column);
     }
     | expression MORE expression
     {
-        $$ = create_binary_operation(">", $1, $3);
+        $$ = create_binary_operation(">", $1, $3, @2.first_line, @2.first_column);
     }
     | expression EQUAL expression
     {
-        $$ = create_binary_operation("==", $1, $3);
+        $$ = create_binary_operation("==", $1, $3, @2.first_line, @2.first_column);
     }
     | LPAREN expression RPAREN
     {
@@ -175,19 +179,19 @@ expression
     }
     | LIT_INT
     {
-        $$ = create_literal($1, "Int");
+        $$ = create_literal($1, "Int", @1.first_line, @1.first_column);
     }
     | LIT_STRING
     {
-        $$ = create_literal($1, "String");
+        $$ = create_literal($1, "String", @1.first_line, @1.first_column);
     }
     | LIT_BOOLEAN
     {
-        $$ = create_literal($1, "Boolean");
+        $$ = create_literal($1, "Boolean", @1.first_line, @1.first_column);
     }
     | IDENT
     {
-        $$ = create_identifier_node($1); // создаем узел переменной
+        $$ = create_identifier_node($1, @1.first_line, @1.first_column); // создаем узел переменной
     }
 ;
 
@@ -235,7 +239,7 @@ param
 block
     : LBRACE statements RBRACE
     {
-        $$ = create_block_node();
+        $$ = create_block_node(@1.first_line, @1.first_column);
         if ($2 && ($2->type == NODE_PROGRAM || $2->type == NODE_BLOCK)) {
             NodeList* children = &$2->block.children;
             for (size_t i = 0; i < children->size; i++) {

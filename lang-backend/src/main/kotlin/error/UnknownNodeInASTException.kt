@@ -1,3 +1,3 @@
 package error
 
-class UnknownNodeInASTException : RuntimeException()
+class UnknownNodeInASTException(line: Int, column: Int) : ASTValidationException(line, column)
