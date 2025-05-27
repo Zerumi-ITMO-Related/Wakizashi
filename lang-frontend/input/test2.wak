@@ -1,3 +1,24 @@
-fun main(a: Int, b: Int) : Unit {
-    print(itos(a + b));
+val b: Int = 14;
+
+fun factorial(n: Int) : Int {
+    if (n == 0) {
+        return 1;
+    } else {
+        return n * factorial(n - 1);
+    }
+
+    return 0;
+}
+
+fun print(s: Int): Unit {
+    val a: Int = 0;
+}
+
+fun main() : Unit {
+    val a: Int = 10;
+    val b: Int = factorial(a) + 12;
+    val c: String = "Hello, World!";
+    print(a);
+    print(b);
+    print(c);
 }

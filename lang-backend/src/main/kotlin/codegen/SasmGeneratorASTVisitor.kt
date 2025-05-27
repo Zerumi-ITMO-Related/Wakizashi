@@ -3,9 +3,27 @@ package codegen
 import ASTNode
 import ASTVisitor
 import error.UnknownNodeInASTException
+import org.jetbrains.annotations.Contract
 import visitAST
 
-fun generateSasm(ast: ASTNode): Result<StringBuilder> = ASTVisitor(
+fun generateSasm(ast: ASTNode) =
+    generateCodegenContextFromAST(ast).fold(
+        onSuccess = { Result.success(generateSasmFromContext(it)) },
+        onFailure = { Result.failure(it) }
+    )
+
+fun generateSasmFromContext(context: CodegenContext) = buildString {
+    context.literals.forEach { literal ->
+        this.appendLine("${literal.label}:")
+        this.appendLine(literal.literals.joinToString("\n") { "word $it" })
+    }
+    context.functions.forEach {
+        this.appendLine("${it.label}:")
+        this.appendLine(it.assembly.joinToString("\n"))
+    }
+}
+
+fun generateCodegenContextFromAST(ast: ASTNode): Result<CodegenContext> = ASTVisitor(
     visitProgramNode = ::visitProgramNode,
     visitFunctionDeclarationNode = ::visitFunctionDeclarationNode,
     visitReturnNode = ::visitReturnNode,
@@ -17,123 +35,141 @@ fun generateSasm(ast: ASTNode): Result<StringBuilder> = ASTVisitor(
     visitIfNode = ::visitIfNode,
     visitLiteralNode = ::visitLiteralNode,
     visitUnknownNode = ::visitUnknownNode
-).visitAST(ast, StringBuilder())
+).visitAST(ast, CodegenContext())
 
 fun visitProgramNode(
-    ast: ASTNode.ProgramNode, state: StringBuilder, astVisitor: ASTVisitor<StringBuilder>
-): Result<StringBuilder> {
+    ast: ASTNode.ProgramNode, state: CodegenContext, astVisitor: ASTVisitor<CodegenContext>
+): Result<CodegenContext> {
     return ast.children.fold(Result.success(state)) { ctx, child ->
-        ctx.fold(onSuccess = { astVisitor.visitAST(child, it) }, onFailure = { ctx })
+        ctx.fold(onSuccess = { astVisitor.visitAST(child, it) }, onFailure = { Result.failure(it) })
     }
 }
 
 fun visitBlockNode(
-    ast: ASTNode.BlockNode, state: StringBuilder, astVisitor: ASTVisitor<StringBuilder>
-): Result<StringBuilder> {
+    ast: ASTNode.BlockNode, state: CodegenContext, astVisitor: ASTVisitor<CodegenContext>
+): Result<CodegenContext> {
     return ast.children.fold(Result.success(state)) { ctx, child ->
-        ctx.fold(onSuccess = { astVisitor.visitAST(child, it) }, onFailure = { ctx })
+        ctx.fold(onSuccess = { astVisitor.visitAST(child, it) }, onFailure = { Result.failure(it) })
     }
-}
-
-fun visitUnknownNode(
-    ast: ASTNode.UnknownNode, state: StringBuilder, astVisitor: ASTVisitor<StringBuilder>
-): Result<StringBuilder> {
-    return Result.failure(UnknownNodeInASTException(ast.line, ast.column))
-}
-
-fun visitLiteralNode(
-    ast: ASTNode.LiteralNode,
-    state: StringBuilder,
-    astVisitor: ASTVisitor<StringBuilder>
-): Result<StringBuilder> {
-    state.appendLine("lit ${ast.value}")
-    return Result.success(state)
 }
 
 fun visitBinaryOperationNode(
     ast: ASTNode.BinaryOperationNode,
-    state: StringBuilder,
-    astVisitor: ASTVisitor<StringBuilder>
-): Result<StringBuilder> {
-    astVisitor.visitAST(ast.left, state)
-    astVisitor.visitAST(ast.right, state)
-    val op = when (ast.op) {
-        "+" -> "add"
-        "-" -> "sub"
-        "*" -> "mul"
-        "/" -> "div"
-        else -> return Result.failure(IllegalArgumentException("Unknown operator ${ast.op}"))
-    }
-    state.appendLine(op)
-    return Result.success(state)
+    state: CodegenContext,
+    astVisitor: ASTVisitor<CodegenContext>
+): Result<CodegenContext> {
+    return astVisitor.visitAST(ast.left, state).fold(
+        onSuccess = { updatedState ->
+            astVisitor.visitAST(ast.right, updatedState).fold(
+                onSuccess = { Result.success(it) },
+                onFailure = { return Result.failure(it) }
+            )
+        },
+        onFailure = { return Result.failure(it) }
+    )
 }
 
 fun visitFunctionDeclarationNode(
     ast: ASTNode.FunctionDeclarationNode,
-    state: StringBuilder,
-    astVisitor: ASTVisitor<StringBuilder>
-): Result<StringBuilder> {
-    state.appendLine("${ast.name}:")
-    return astVisitor.visitAST(ast.body, state)
+    state: CodegenContext,
+    astVisitor: ASTVisitor<CodegenContext>
+): Result<CodegenContext> {
+    val stateWithLiterals = astVisitor.visitAST(ast.body, state).fold(
+        onSuccess = { it },
+        onFailure = { return Result.failure(it) }
+    )
+    val functionDeclaration = FunctionDeclaration(
+        ast.name,
+        generateFunctionBody(ast.body, stateWithLiterals).fold(
+            onSuccess = { it },
+            onFailure = { return Result.failure(it) }
+        )
+    )
+    return Result.success(stateWithLiterals.withFunction(functionDeclaration))
 }
 
 fun visitReturnNode(
     ast: ASTNode.ReturnNode,
-    state: StringBuilder,
-    astVisitor: ASTVisitor<StringBuilder>
-): Result<StringBuilder> {
-    astVisitor.visitAST(ast.value, state)
-    state.appendLine("ret")
-    return Result.success(state)
+    state: CodegenContext,
+    astVisitor: ASTVisitor<CodegenContext>
+): Result<CodegenContext> {
+    return astVisitor.visitAST(ast.value, state).fold(
+        onSuccess = { Result.success(it) },
+        onFailure = { return Result.failure(it) }
+    )
 }
 
 fun visitFunctionCallNode(
     ast: ASTNode.FunctionCallNode,
-    state: StringBuilder,
-    astVisitor: ASTVisitor<StringBuilder>
-): Result<StringBuilder> {
-    for (arg in ast.args) {
-        astVisitor.visitAST(arg, state)
+    state: CodegenContext,
+    astVisitor: ASTVisitor<CodegenContext>
+): Result<CodegenContext> {
+    return ast.args.fold(Result.success(state)) { ctx, child ->
+        ctx.fold(onSuccess = { astVisitor.visitAST(child, it) }, onFailure = { Result.failure(it) })
     }
-    state.appendLine("call ${ast.name}")
-    return Result.success(state)
-}
-
-fun visitIdentNode(
-    ast: ASTNode.IdentNode,
-    state: StringBuilder,
-    astVisitor: ASTVisitor<StringBuilder>
-): Result<StringBuilder> {
-    state.appendLine("load ${ast.name}")
-    return Result.success(state)
 }
 
 fun visitValueDeclarationNode(
     ast: ASTNode.ValueDeclarationNode,
-    state: StringBuilder,
-    astVisitor: ASTVisitor<StringBuilder>
-): Result<StringBuilder> {
-    astVisitor.visitAST(ast.initializer, state)
-    state.appendLine("store ${ast.name}")
-    return Result.success(state)
+    state: CodegenContext,
+    astVisitor: ASTVisitor<CodegenContext>
+): Result<CodegenContext> {
+    val stateWithLiterals = astVisitor.visitAST(ast.initializer, state).fold(
+        onSuccess = { it },
+        onFailure = { return Result.failure(it) }
+    )
+    val identLiteral = LiteralDeclaration(
+        label = ast.name,
+        value = "",
+        literals = listOf(0)
+    )
+    val initFunction =
+        FunctionDeclaration("init_${ast.name}", generateFunctionBody(ast.initializer, stateWithLiterals).fold(
+            onSuccess = { it.plus(listOf("lit ${ast.name}", "store", "ret")) },
+            onFailure = { return Result.failure(it) }
+        ))
+    return Result.success(stateWithLiterals.withFunction(initFunction).withLiteral(identLiteral))
 }
 
 fun visitIfNode(
     ast: ASTNode.IfNode,
-    state: StringBuilder,
-    astVisitor: ASTVisitor<StringBuilder>
-): Result<StringBuilder> {
-    val elseLabel = "else_${ast.hashCode()}"
-    val endLabel = "endif_${ast.hashCode()}"
+    state: CodegenContext,
+    astVisitor: ASTVisitor<CodegenContext>
+): Result<CodegenContext> {
+    return astVisitor.visitAST(ast.condition, state).fold(
+        onSuccess = { updatedState ->
+            astVisitor.visitAST(ast.then, updatedState).fold(
+                onSuccess = { updatedState2 ->
+                    ast.`else`?.let { astVisitor.visitAST(it, updatedState2) } ?: Result.success(updatedState2)
+                },
+                onFailure = { Result.failure(it) }
+            )
+        },
+        onFailure = { Result.failure(it) }
+    )
+}
 
-    astVisitor.visitAST(ast.condition, state)
-    state.appendLine("jz $elseLabel")
-    astVisitor.visitAST(ast.then, state)
-    state.appendLine("jmp $endLabel")
-    state.appendLine("$elseLabel:")
-    ast.`else`?.let { astVisitor.visitAST(it, state) }
-    state.appendLine("$endLabel:")
+fun visitLiteralNode(
+    ast: ASTNode.LiteralNode,
+    state: CodegenContext,
+    astVisitor: ASTVisitor<CodegenContext>
+): Result<CodegenContext> {
+    val wordList = generateLiterals(ast.value, LiteralTypes.valueOf(ast.valType.uppercase()))
+    val literal = LiteralDeclaration("lit-${state.literals.size}", ast.value, wordList)
+    return Result.success(state.withLiteral(literal))
+}
 
+fun visitIdentNode(
+    ast: ASTNode.IdentNode,
+    state: CodegenContext,
+    astVisitor: ASTVisitor<CodegenContext>
+): Result<CodegenContext> {
     return Result.success(state)
 }
 
+@Contract("_, _, _ -> fail")
+fun visitUnknownNode(
+    ast: ASTNode.UnknownNode, state: CodegenContext, astVisitor: ASTVisitor<CodegenContext>
+): Result<CodegenContext> {
+    return Result.failure(UnknownNodeInASTException(ast.line, ast.column))
+}

@@ -4,6 +4,7 @@ import ASTNode
 import ASTVisitor
 import error.TypeMismatchException
 import error.UnknownNodeInASTException
+import error.WrongReturnTypeException
 import visitAST
 
 fun checkASTSemantic(ast: ASTNode): Result<SemanticContext> = ASTVisitor(
@@ -45,6 +46,12 @@ fun visitFunctionDeclarationNode(
     val name = ast.name
     val params = ast.params.map { VariableDeclaration(it.name, it.paramType) }
     val returnType = ast.returnType
+    val blockReturnType = inferType(ast.body, state).fold(
+        onSuccess = { it },
+        onFailure = { return Result.failure(it) }
+    )
+    if (returnType.uppercase() != LiteralTypes.UNIT.name && returnType != blockReturnType)
+        return Result.failure(WrongReturnTypeException(ast.line, ast.column))
     astVisitor.visitAST(ast.body, state).onFailure { return Result.failure(it) }
     return Result.success(state.withFunction(FunctionDeclaration(name, params, returnType)))
 }

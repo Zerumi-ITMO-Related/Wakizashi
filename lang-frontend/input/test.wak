@@ -1,18 +1,13 @@
-val b: Int = 14;
-
-fun main() : Unit {
-    val a: Int = 10;
-    val b: Int = factorial(a) + 12;
-    val c: String = "Hello, World!";
-    print(a);
-    print(b);
-    print(c);
+fun factorial(n: Int): Int {
+    return 0;
 }
 
-fun factorial(n: Int) : Int {
-    if (n == 0) {
-        return 1;
-    } else {
-        return n * factorial(n - 1);
-    }
+fun println(s: String) : Unit {
+    val a: Int = 1;
+    val b: Int = factorial(a);
+    val c: String = s;
+}
+
+fun main() : Unit {
+    println("Hello, world!");
 }

@@ -32,10 +32,14 @@ fun inferType(node: ASTNode, programSymbols: SemanticContext): Result<String> {
         is ASTNode.LiteralNode -> Result.success(node.valType)
         is ASTNode.ValueDeclarationNode -> Result.success(node.valType)
         is ASTNode.FunctionDeclarationNode -> Result.success(node.returnType)
+        is ASTNode.BlockNode -> inferType(node.children.last(), programSymbols)
 
-        is ASTNode.BlockNode -> Result.failure(CannotInferTypeException(node.line, node.column))
         is ASTNode.IfNode -> Result.failure(CannotInferTypeException(node.line, node.column))
         is ASTNode.ProgramNode -> Result.failure(CannotInferTypeException(node.line, node.column))
         is ASTNode.UnknownNode -> Result.failure(CannotInferTypeException(node.line, node.column))
     }
+}
+
+fun verifyFunctionAlwaysReturnValue(body: ASTNode, semanticContext: SemanticContext) : Result<Unit> {
+    return Result.success(Unit)
 }

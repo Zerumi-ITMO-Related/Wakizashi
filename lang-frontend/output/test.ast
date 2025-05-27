@@ -6,145 +6,6 @@
     {
       "line": 1,
       "column": 0,
-      "type": "VAL_DECLARATION",
-      "name": "b",
-      "valType": "Int",
-      "initializer":
-        {
-          "line": 1,
-          "column": 13,
-          "type": "LITERAL",
-          "value": "14",
-          "valType": "Int"
-        }
-    },
-    {
-      "line": 3,
-      "column": 0,
-      "type": "FUN_DECLARATION",
-      "name": "main",
-      "returnType": "Unit",
-      "params": [      ],
-      "body":
-        {
-          "line": 3,
-          "column": 18,
-          "type": "BLOCK",
-          "children": [
-            {
-              "line": 4,
-              "column": 4,
-              "type": "VAL_DECLARATION",
-              "name": "a",
-              "valType": "Int",
-              "initializer":
-                {
-                  "line": 4,
-                  "column": 17,
-                  "type": "LITERAL",
-                  "value": "10",
-                  "valType": "Int"
-                }
-            },
-            {
-              "line": 5,
-              "column": 4,
-              "type": "VAL_DECLARATION",
-              "name": "b",
-              "valType": "Int",
-              "initializer":
-                {
-                  "line": 5,
-                  "column": 30,
-                  "type": "BIN_OP",
-                  "op": "+",
-                  "left":
-                    {
-                      "line": 5,
-                      "column": 17,
-                      "type": "FUN_CALL",
-                      "name": "factorial",
-                      "args": [
-                        {
-                          "line": 5,
-                          "column": 27,
-                          "type": "IDENT",
-                          "name": "a"
-                        }
-                      ]
-                    },
-                  "right":
-                    {
-                      "line": 5,
-                      "column": 32,
-                      "type": "LITERAL",
-                      "value": "12",
-                      "valType": "Int"
-                    }                }
-            },
-            {
-              "line": 6,
-              "column": 4,
-              "type": "VAL_DECLARATION",
-              "name": "c",
-              "valType": "String",
-              "initializer":
-                {
-                  "line": 6,
-                  "column": 20,
-                  "type": "LITERAL",
-                  "value": "\"Hello, World!\"",
-                  "valType": "String"
-                }
-            },
-            {
-              "line": 7,
-              "column": 4,
-              "type": "FUN_CALL",
-              "name": "print",
-              "args": [
-                {
-                  "line": 7,
-                  "column": 10,
-                  "type": "IDENT",
-                  "name": "a"
-                }
-              ]
-            },
-            {
-              "line": 8,
-              "column": 4,
-              "type": "FUN_CALL",
-              "name": "print",
-              "args": [
-                {
-                  "line": 8,
-                  "column": 10,
-                  "type": "IDENT",
-                  "name": "b"
-                }
-              ]
-            },
-            {
-              "line": 9,
-              "column": 4,
-              "type": "FUN_CALL",
-              "name": "print",
-              "args": [
-                {
-                  "line": 9,
-                  "column": 10,
-                  "type": "IDENT",
-                  "name": "c"
-                }
-              ]
-            }
-          ]
-        }
-    },
-    {
-      "line": 12,
-      "column": 0,
       "type": "FUN_DECLARATION",
       "name": "factorial",
       "returnType": "Int",
@@ -152,109 +13,107 @@
         { "name": "n", "paramType": "Int" }      ],
       "body":
         {
-          "line": 12,
-          "column": 28,
+          "line": 1,
+          "column": 27,
           "type": "BLOCK",
           "children": [
             {
-              "line": 13,
+              "line": 2,
               "column": 4,
-              "type": "IF",
-              "condition":
+              "type": "RETURN",
+              "value":
                 {
-                  "line": 13,
-                  "column": 10,
-                  "type": "BIN_OP",
-                  "op": "==",
-                  "left":
-                    {
-                      "line": 13,
-                      "column": 8,
-                      "type": "IDENT",
-                      "name": "n"
-                    },
-                  "right":
-                    {
-                      "line": 13,
-                      "column": 13,
-                      "type": "LITERAL",
-                      "value": "0",
-                      "valType": "Int"
-                    }                },
-              "then":
-                {
-                  "line": 13,
-                  "column": 16,
-                  "type": "BLOCK",
-                  "children": [
-                    {
-                      "line": 14,
-                      "column": 8,
-                      "type": "RETURN",
-                      "value":
-                        {
-                          "line": 14,
-                          "column": 15,
-                          "type": "LITERAL",
-                          "value": "1",
-                          "valType": "Int"
-                        }                    }
-                  ]
-                },
-              "else":
-                {
-                  "line": 15,
+                  "line": 2,
                   "column": 11,
-                  "type": "BLOCK",
-                  "children": [
-                    {
-                      "line": 16,
-                      "column": 8,
-                      "type": "RETURN",
-                      "value":
-                        {
-                          "line": 16,
-                          "column": 17,
-                          "type": "BIN_OP",
-                          "op": "*",
-                          "left":
-                            {
-                              "line": 16,
-                              "column": 15,
-                              "type": "IDENT",
-                              "name": "n"
-                            },
-                          "right":
-                            {
-                              "line": 16,
-                              "column": 19,
-                              "type": "FUN_CALL",
-                              "name": "factorial",
-                              "args": [
-                                {
-                                  "line": 16,
-                                  "column": 31,
-                                  "type": "BIN_OP",
-                                  "op": "-",
-                                  "left":
-                                    {
-                                      "line": 16,
-                                      "column": 29,
-                                      "type": "IDENT",
-                                      "name": "n"
-                                    },
-                                  "right":
-                                    {
-                                      "line": 16,
-                                      "column": 33,
-                                      "type": "LITERAL",
-                                      "value": "1",
-                                      "valType": "Int"
-                                    }                                }
-                              ]
-                            }                        }                    }
-                  ]
+                  "type": "LITERAL",
+                  "value": "0",
+                  "valType": "Int"
                 }            }
+          ]
+        }
+    },
+    {
+      "line": 5,
+      "column": 0,
+      "type": "FUN_DECLARATION",
+      "name": "println",
+      "returnType": "Unit",
+      "params": [
+        { "name": "s", "paramType": "String" }      ],
+      "body":
+        {
+          "line": 5,
+          "column": 30,
+          "type": "BLOCK",
+          "children": [
+            {
+              "line": 6,
+              "column": 4,
+              "type": "VAL_DECLARATION",
+              "name": "a",
+              "valType": "Int",
+              "initializer":
+                {
+                  "line": 6,
+                  "column": 17,
+                  "type": "LITERAL",
+                  "value": "1",
+                  "valType": "Int"
+                }
+            },
+            {
+              "line": 7,
+              "column": 4,
+              "type": "VAL_DECLARATION",
+              "name": "b",
+              "valType": "Int",
+              "initializer":
+                {
+                  "line": 7,
+                  "column": 17,
+                  "type": "FUN_CALL",
+                  "name": "factorial",
+                  "args": [
+                    {
+                      "line": 7,
+                      "column": 27,
+                      "type": "IDENT",
+                      "name": "a"
+                    }
+                  ]
+                }
+            }
+          ]
+        }
+    },
+    {
+      "line": 10,
+      "column": 0,
+      "type": "FUN_DECLARATION",
+      "name": "main",
+      "returnType": "Unit",
+      "params": [      ],
+      "body":
+        {
+          "line": 10,
+          "column": 18,
+          "type": "BLOCK",
+          "children": [
+            {
+              "line": 11,
+              "column": 4,
+              "type": "FUN_CALL",
+              "name": "println",
+              "args": [
+                {
+                  "line": 11,
+                  "column": 12,
+                  "type": "LITERAL",
+                  "value": "\"Hello, world!\"",
+                  "valType": "String"
+                }
+              ]
+            }
           ]
         }
     }
