@@ -222,6 +222,7 @@ print_digit:
 ; returns nothing
 ; usage: lit arg + lit print_number + call
 print_number:
+                load                ; num
                 lit -1              ; num -1
                 swap                ; -1 num
                 dup                 ; -1 num num

@@ -35,6 +35,21 @@ fun stdlibContext() = SemanticContext(
             name = "print",
             params = listOf(VariableDeclaration("str", "String")),
             returnType = "Unit"
+        ),
+        FunctionDeclaration(
+            name = "print_number",
+            params = listOf(VariableDeclaration("num", "Int")),
+            returnType = "Unit"
+        ),
+        FunctionDeclaration(
+            name = "parse_int",
+            params = listOf(VariableDeclaration("str", "String")),
+            returnType = "Int"
+        ),
+        FunctionDeclaration(
+            name = "readln",
+            params = listOf(),
+            returnType = "String"
         )
     )
 )
