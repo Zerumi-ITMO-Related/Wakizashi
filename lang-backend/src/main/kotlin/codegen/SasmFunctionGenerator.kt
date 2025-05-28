@@ -35,8 +35,8 @@ fun generateFunctionBody(node: ASTNode, codegenState: CodegenContext, state: Lis
         }
 
         is ASTNode.FunctionCallNode -> {
-            val args = node.args.fold(Result.success(emptyList<String>())) { ctx, child ->
-                ctx.fold(onSuccess = { generateFunctionBody(child, codegenState, it) }, onFailure = { ctx })
+            val args = node.args.reversed().fold(Result.success(emptyList<String>())) { ctx, child ->
+                ctx.fold(onSuccess = { generateFunctionBody(child, codegenState, it) }, onFailure = { Result.failure(it) })
             }.fold(
                 onSuccess = { it },
                 onFailure = { return Result.failure(it) }
@@ -107,7 +107,7 @@ fun generateFunctionBody(node: ASTNode, codegenState: CodegenContext, state: Lis
 
         is ASTNode.LiteralNode -> {
             val literal = codegenState.literals.find { it.value == node.value } ?: return Result.failure(MissedLiteralException(node.line, node.column))
-            Result.success(listOf("lit ${literal.label}"))
+            Result.success(state.plus(listOf("lit ${literal.label}")))
         }
 
         is ASTNode.ValueDeclarationNode -> {

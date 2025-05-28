@@ -128,7 +128,11 @@ ASTNode *create_function_declaration(const char *name, char **param_names,
 
 ASTNode *create_return_statement(ASTNode *value, int line, int column);
 
-ASTNode *create_function_call(const char *name, ASTNode *arg, int line, int column);
+ASTNode *create_function_call(const char *name, ASTNode **args, size_t arg_count, int line, int column);
+
+ASTNode *append_expression_list(ASTNode *list, ASTNode *expr);
+
+ASTNode *create_expression_list(ASTNode *first);
 
 // Функции для работы со списком узлов
 void add_child(ASTNode *parent, ASTNode *child);

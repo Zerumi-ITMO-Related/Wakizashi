@@ -1,3 +1,0 @@
-fun println(s: String) : Unit {
-    
-}

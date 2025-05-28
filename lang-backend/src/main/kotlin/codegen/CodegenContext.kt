@@ -2,18 +2,29 @@ package codegen
 
 data class CodegenContext(
     val literals: List<LiteralDeclaration> = emptyList(),
-    val functions: List<FunctionDeclaration> = emptyList()
+    val references: List<ReferenceDeclaration> = emptyList(),
+    val functions: List<FunctionDeclaration> = emptyList(),
 ) {
     fun withLiteral(literalDeclaration: LiteralDeclaration) =
         copy(literals = literals.plus(literalDeclaration))
 
+    fun withReference(referenceDeclaration: ReferenceDeclaration) =
+        copy(references = references.plus(referenceDeclaration))
+
     fun withFunction(functionDeclaration: FunctionDeclaration) =
         copy(functions = functions.plus(functionDeclaration))
+
+    fun withReferences(references: List<ReferenceDeclaration>) =
+        copy(references = this.references.plus(references))
 }
 
 data class FunctionDeclaration(
     val label: String,
     val assembly: List<String>
+)
+
+data class ReferenceDeclaration(
+    val label: String
 )
 
 data class LiteralDeclaration(

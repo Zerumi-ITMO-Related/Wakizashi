@@ -2,10 +2,8 @@ fun factorial(n: Int): Int {
     return 0;
 }
 
-fun println(s: String) : Unit {
-    val a: Int = 1;
-    val b: Int = factorial(a);
-    val c: String = s;
+fun println(s: String, s2: String) : Unit {
+    return Unit;
 }
 
 fun main() : Unit {

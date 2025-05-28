@@ -30,10 +30,10 @@ extern ASTNode* ast_root;
 
 %token <sval> IDENT
 %token <sval> LIT_INT LIT_STRING
-%token <sval> LIT_BOOLEAN
+%token <sval> LIT_BOOLEAN UNIT
 
 %token VAL FUN RETURN
-%token UNIT INT BOOLEAN STRING
+%token INT BOOLEAN STRING
 %token IF ELSE
 %token COLON SEMICOLON COMMA
 %token LPAREN RPAREN LBRACE RBRACE LESS MORE EQUAL
@@ -44,7 +44,7 @@ extern ASTNode* ast_root;
 
 %type <node> program statements statement declaration_statement
 %type <node> expression if_statement function_call return_statement
-%type <node> block
+%type <node> expression_list block
 
 %right '='
 %left '+' '-'
@@ -95,16 +95,28 @@ statement
 
 /* factorial(2 + 2) */
 function_call
-    : IDENT LPAREN expression RPAREN
+    : IDENT LPAREN expression_list RPAREN
     {
-        $$ = create_function_call($1, $3, @1.first_line, @1.first_column);
+        $$ = create_function_call($1, $3->function_call.arguments, $3->function_call.arg_count, @1.first_line, @1.first_column);
+        free($3);
+    }
+;
+
+/* factorial(2 + 2, 3) */
+expression_list
+    : expression
+    {
+        $$ = create_expression_list($1);
+    }
+    | expression_list COMMA expression
+    {
+        $$ = append_expression_list($1, $3);
     }
 ;
 
 /* return 2 + 2 */
 return_statement
-    : RETURN                   { $$ = create_return_statement(NULL, @1.first_line, @1.first_column); }
-    | RETURN expression        { $$ = create_return_statement($2, @1.first_line, @1.first_column); }
+    : RETURN expression        { $$ = create_return_statement($2, @1.first_line, @1.first_column); }
 ;
 
 /* val a: Int = 4 */
@@ -188,6 +200,10 @@ expression
     | LIT_BOOLEAN
     {
         $$ = create_literal($1, "Boolean", @1.first_line, @1.first_column);
+    }
+    | UNIT
+    {
+        $$ = create_literal($1, "Unit", @1.first_line, @1.first_column); // создаем узел для Unit
     }
     | IDENT
     {

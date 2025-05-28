@@ -13,6 +13,10 @@ fun generateSasm(ast: ASTNode) =
     )
 
 fun generateSasmFromContext(context: CodegenContext) = buildString {
+    context.references.forEach { reference ->
+        this.appendLine("${reference.label}:")
+        this.appendLine("word 0")
+    }
     context.literals.forEach { literal ->
         this.appendLine("${literal.label}:")
         this.appendLine(literal.literals.joinToString("\n") { "word $it" })
@@ -77,11 +81,17 @@ fun visitFunctionDeclarationNode(
     val stateWithLiterals = astVisitor.visitAST(ast.body, state).fold(
         onSuccess = { it },
         onFailure = { return Result.failure(it) }
-    )
+    ).withReferences(ast.params.map { ReferenceDeclaration(it.name) })
+    val paramInit = ast.params.map {
+        listOf(
+            "lit ${it.name}",
+            "store"
+        )
+    }.flatten()
     val functionDeclaration = FunctionDeclaration(
         ast.name,
         generateFunctionBody(ast.body, stateWithLiterals).fold(
-            onSuccess = { it },
+            onSuccess = { paramInit.plus(it) },
             onFailure = { return Result.failure(it) }
         )
     )
@@ -118,17 +128,15 @@ fun visitValueDeclarationNode(
         onSuccess = { it },
         onFailure = { return Result.failure(it) }
     )
-    val identLiteral = LiteralDeclaration(
-        label = ast.name,
-        value = "",
-        literals = listOf(0)
+    val reference = ReferenceDeclaration(
+        label = ast.name
     )
     val initFunction =
         FunctionDeclaration("init_${ast.name}", generateFunctionBody(ast.initializer, stateWithLiterals).fold(
             onSuccess = { it.plus(listOf("lit ${ast.name}", "store", "ret")) },
             onFailure = { return Result.failure(it) }
         ))
-    return Result.success(stateWithLiterals.withFunction(initFunction).withLiteral(identLiteral))
+    return Result.success(stateWithLiterals.withFunction(initFunction).withReference(reference))
 }
 
 fun visitIfNode(

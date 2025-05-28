@@ -169,24 +169,35 @@ ASTNode *create_return_statement(ASTNode *value, int line, int column) {
   return node;
 }
 
-ASTNode *create_function_call(const char *name, ASTNode *arg, int line,
-                              int column) {
-  ASTNode *node = malloc(sizeof(ASTNode));
-  if (node) {
+ASTNode *create_function_call(const char *name, ASTNode **args, size_t arg_count, int line, int column) {
+    ASTNode *node = malloc(sizeof(ASTNode));
     node->type = NODE_FUNCTION_CALL;
     node->line = line;
     node->column = column;
     node->function_call.function_name = strdup_custom(name);
+    node->function_call.arg_count = arg_count;
+    node->function_call.arguments = args;
+    return node;
+}
 
-    node->function_call.arg_count = (arg != NULL) ? 1 : 0;
-    node->function_call.arguments =
-        (arg != NULL) ? malloc(sizeof(ASTNode *)) : NULL;
 
-    if (arg != NULL) {
-      node->function_call.arguments[0] = arg;
-    }
-  }
-  return node;
+ASTNode *create_expression_list(ASTNode *first) {
+    ASTNode *node = malloc(sizeof(ASTNode));
+    node->type = NODE_FUNCTION_CALL; // временно используем NODE_FUNCTION_CALL
+    node->line = first->line;
+    node->column = first->column;
+    node->function_call.arg_count = 1;
+    node->function_call.arguments = malloc(sizeof(ASTNode *));
+    node->function_call.arguments[0] = first;
+    return node;
+}
+
+ASTNode *append_expression_list(ASTNode *list, ASTNode *expr) {
+    size_t n = list->function_call.arg_count + 1;
+    list->function_call.arguments = realloc(list->function_call.arguments, sizeof(ASTNode *) * n);
+    list->function_call.arguments[n - 1] = expr;
+    list->function_call.arg_count = n;
+    return list;
 }
 
 // Добавление дочернего узла

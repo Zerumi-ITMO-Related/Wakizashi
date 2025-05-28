@@ -39,11 +39,12 @@
       "name": "println",
       "returnType": "Unit",
       "params": [
-        { "name": "s", "paramType": "String" }      ],
+        { "name": "s", "paramType": "String" },
+        { "name": "s2", "paramType": "String" }      ],
       "body":
         {
           "line": 5,
-          "column": 30,
+          "column": 42,
           "type": "BLOCK",
           "children": [
             {
@@ -82,12 +83,26 @@
                     }
                   ]
                 }
+            },
+            {
+              "line": 8,
+              "column": 4,
+              "type": "VAL_DECLARATION",
+              "name": "c",
+              "valType": "String",
+              "initializer":
+                {
+                  "line": 8,
+                  "column": 20,
+                  "type": "IDENT",
+                  "name": "s"
+                }
             }
           ]
         }
     },
     {
-      "line": 10,
+      "line": 11,
       "column": 0,
       "type": "FUN_DECLARATION",
       "name": "main",
@@ -95,21 +110,28 @@
       "params": [      ],
       "body":
         {
-          "line": 10,
+          "line": 11,
           "column": 18,
           "type": "BLOCK",
           "children": [
             {
-              "line": 11,
+              "line": 12,
               "column": 4,
               "type": "FUN_CALL",
               "name": "println",
               "args": [
                 {
-                  "line": 11,
+                  "line": 12,
                   "column": 12,
                   "type": "LITERAL",
                   "value": "\"Hello, world!\"",
+                  "valType": "String"
+                },
+                {
+                  "line": 12,
+                  "column": 29,
+                  "type": "LITERAL",
+                  "value": "\"H2\"",
                   "valType": "String"
                 }
               ]

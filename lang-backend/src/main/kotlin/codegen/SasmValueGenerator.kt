@@ -50,7 +50,7 @@ inside function:
 fun generateLiterals(literal: String, type: LiteralTypes): List<Int> {
     return when (type) {
         LiteralTypes.INT -> listOf(literal.toInt())
-        LiteralTypes.STRING -> literal.map { it.code }
+        LiteralTypes.STRING -> literal.substring(1..<literal.length - 1).map { it.code }.plus(0) // null-terminator
         LiteralTypes.BOOLEAN -> if (literal.equals("true", ignoreCase = true)) listOf(1) else listOf(0)
         LiteralTypes.UNIT -> listOf(0)
     }

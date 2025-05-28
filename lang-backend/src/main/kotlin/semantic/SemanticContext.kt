@@ -4,6 +4,10 @@ data class SemanticContext(
     val variables: List<VariableDeclaration> = emptyList(),
     val functions: List<FunctionDeclaration> = emptyList(),
 ) {
+    fun withVariables(variables: List<VariableDeclaration>) = copy(
+        variables = variables.plus(variables)
+    )
+
     fun withVariable(variableDeclaration: VariableDeclaration) = copy(
         variables = variables.plus(variableDeclaration)
     )
