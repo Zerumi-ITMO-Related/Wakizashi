@@ -267,6 +267,187 @@ loop2:
 break:
                 ret                 ;
 
+; adds 2 ints by reference
+; consumed operand: num1_link num2_link
+; returns link to num1 + num2
+; usage: lit num1_link + lit num2_link + lit add + call
+result_add:
+                word 0              ; result accumulator
+add:
+                load                ; num2 num1_link
+                swap                ; num1_link num2
+                load                ; num1 num2
+                add                 ; result
+                lit result_add      ; result result_link
+                store               ; <empty>
+                lit result_add      ; result_link
+                ret                 ; result_link 
+
+; subtracts 2 ints by reference
+; consumed operand: num1_link num2_link
+; returns link to num1 - num2
+; usage: lit num1_link + lit num2_link + lit add + call
+result_sub:
+                word 0
+sub:
+                load                ; num2 num1_link
+                swap                ; num1_link num2
+                load                ; num1 num2
+                sub                 ; result
+                lit result_sub      ; result result_link
+                store               ; <empty>
+                lit result_sub      ; result_link
+                ret                 ; result_link 
+
+; multiply 2 ints by reference
+; consumed operand: num1_link num2_link
+; returns link to num1 * num2
+; usage: lit num1_link + lit num2_link + lit add + call
+result_mul:
+                word 0
+mul:
+                load                ; num2 num1_link
+                swap                ; num1_link num2
+                load                ; num1 num2
+                mul                 ; result
+                lit result_mul      ; result result_link
+                store               ; <empty>
+                lit result_mul      ; result_link
+                ret                 ; result_link 
+
+; divides 2 ints by reference
+; consumed operand: num1_link num2_link
+; returns link to num1 / num2
+; usage: lit num1_link + lit num2_link + lit add + call
+result_div:
+                word 0
+div:
+                load                ; num2 num1_link
+                swap                ; num1_link num2
+                load                ; num1 num2
+                div                 ; result
+                lit result_div      ; result result_link
+                store               ; <empty>
+                lit result_div      ; result_link
+                ret                 ; result_link 
+
+; perfoms equality check of 2 ints by reference
+; consumed operand: num1_link num2_link
+; returns link to 1/0 - true or false
+; usage: lit num1_link + lit num2_link + lit add + call    
+result_equals:
+                word 0
+equals:
+                load                ; num2 num1_link
+                swap                ; num1_link num2
+                load                ; num1 num2_link
+                sub                 ; 0/not0
+                lit equals_pass     ; 0 equals_pass
+                jz                  ; <empty>
+                lit 0               ; 0
+                lit equals_set_res  ; 0 equals_set_res
+                jump                ; 0
+equals_pass:
+                lit 1               ; 1
+equals_set_res:
+                lit result_equals      ; result result_link
+                store               ; <empty>
+                lit result_equals      ; result_link
+                ret                 ; result_link 
+
+; perfoms reverse equality check of 2 ints by reference
+; consumed operand: num1_link num2_link
+; returns link to 1/0 - true or false
+; usage: lit num1_link + lit num2_link + lit add + call
+result_not_equals:
+                word 0
+not_equals:
+                load                ; num2 num1_link
+                swap                ; num1_link num2
+                load                ; num1 num2
+                sub                 ; 0/not0
+                lit not_equals_pass ; 0 not_equals_pass
+                jz                  ; <empty>
+                lit 1               ; 1
+                lit not_eq_set_res  ; 1 not_eq_set_res
+                jump                ; 1
+not_equals_pass:
+                lit 0               ; 0
+not_eq_set_res:
+                lit result_not_equals   ; result result_link
+                store               ; <empty>
+                lit result_not_equals   ; result_link
+                ret                 ; result_link 
+
+; perfoms less check of 2 ints by reference
+; consumed operand: num1_link num2_link
+; returns link to 1/0 - true or false
+; usage: lit num1_link + lit num2_link + lit add + call
+result_less:
+                word 0
+less:
+                load                ; num2 num1_link
+                swap                ; num1_link num2
+                load                ; num1 num2
+                swap                ; num2 num1
+                sub                 ; num2 - num1
+
+                lit result_less      ; result result_link
+                store               ; <empty>
+                lit result_less      ; result_link
+                ret                 ; result_link 
+
+; perfoms more check of 2 ints by reference
+; consumed operand: num1_link num2_link
+; returns link to 1/0 - true or false
+; usage: lit num1_link + lit num2_link + lit add + call
+result_more:
+                word 0
+more:
+                load                ; num2 num1_link
+                swap                ; num1_link num2
+                load                ; num1 num2
+                swap                ; num2 num1
+                add                 ; result
+                lit result_more      ; result result_link
+                store               ; <empty>
+                lit result_more      ; result_link
+                ret                 ; result_link 
+
+; perfoms logical and of 2 ints by reference
+; consumed operand: num1_link num2_link
+; returns link to 1/0 - true or false
+; usage: lit num1_link + lit num2_link + lit add + call
+result_and:
+                word 0
+and:
+                load                ; num2 num1_link
+                swap                ; num1_link num2
+                load                ; num1 num2
+                swap                ; num2 num1
+                add                 ; result
+                lit result_and      ; result result_link
+                store               ; <empty>
+                lit result_and      ; result_link
+                ret                 ; result_link 
+
+; perfoms logical or of 2 ints by reference
+; consumed operand: num1_link num2_link
+; returns link to 1/0 - true or false
+; usage: lit num1_link + lit num2_link + lit add + call
+result_or:
+                word 0
+or:
+                load                ; num2 num1_link
+                swap                ; num1_link num2
+                load                ; num1 num2
+                swap                ; num2 num1
+                add                 ; result
+                lit result_or       ; result result_link
+                store               ; <empty>
+                lit result_or       ; result_link
+                ret                 ; result_link 
+
 ; ##############
 ; User section
 ; ##############

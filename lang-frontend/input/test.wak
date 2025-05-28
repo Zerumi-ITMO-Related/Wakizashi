@@ -1,4 +1,5 @@
 fun main() : Unit {
     print("Hello, world!");
+    print_number(2 + 3);
     return Unit;
 }

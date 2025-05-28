@@ -91,7 +91,6 @@ fun visitFunctionCallNode(
 fun visitIdentNode(
     ast: ASTNode.IdentNode, state: SemanticContext, astVisitor: ASTVisitor<SemanticContext>
 ): Result<SemanticContext> {
-    println(ast)
     return Result.success(state)
 }
 

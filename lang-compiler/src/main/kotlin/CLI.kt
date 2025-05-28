@@ -74,13 +74,13 @@ class CompilerCLI : CliktCommand() {
             "-o",
             stdout.pathString,
             "-l",
-            "/dev/null"
+            "/var/waki-journal.log"
         )
             .redirectError(ProcessBuilder.Redirect.INHERIT)
             .start()
 
         val exitCodeComp = compProcess.waitFor()
-        if (exitCodeComp != 0) error("Assembly exited with code $exitCodeComp")
+        if (exitCodeComp != 0) error("Comp exited with code $exitCodeComp")
 
         println(stdout.readText())
     }

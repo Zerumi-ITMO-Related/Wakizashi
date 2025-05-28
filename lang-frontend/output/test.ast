@@ -34,13 +34,42 @@
             {
               "line": 3,
               "column": 4,
+              "type": "FUN_CALL",
+              "name": "print_number",
+              "args": [
+                {
+                  "line": 3,
+                  "column": 19,
+                  "type": "BIN_OP",
+                  "op": "+",
+                  "left":
+                    {
+                      "line": 3,
+                      "column": 17,
+                      "type": "LITERAL",
+                      "value": "2",
+                      "valType": "Int"
+                    },
+                  "right":
+                    {
+                      "line": 3,
+                      "column": 21,
+                      "type": "LITERAL",
+                      "value": "3",
+                      "valType": "Int"
+                    }                }
+              ]
+            },
+            {
+              "line": 4,
+              "column": 4,
               "type": "RETURN",
               "value":
                 {
-                  "line": 3,
+                  "line": 4,
                   "column": 11,
                   "type": "LITERAL",
-                  "value": "\"Hello, world!\"",
+                  "value": "3",
                   "valType": "Unit"
                 }            }
           ]

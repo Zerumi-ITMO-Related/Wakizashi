@@ -31,13 +31,19 @@ fun generateFunctionBody(
                 onFailure = { return Result.failure(it) }
             )
             val op = when (node.op) {
-                "+" -> "add"
-                "-" -> "sub"
-                "*" -> "mul"
-                "/" -> "div"
+                "+" -> "lit add"
+                "-" -> "lit sub"
+                "*" -> "lit mul"
+                "/" -> "lit div"
+                "==" -> "lit equals"
+                "!=" -> "lit not_equals"
+                ">" -> "lit more"
+                "<" -> "lit less"
+                "&&" -> "lit and"
+                "||" -> "lit or"
                 else -> return Result.failure(UnknownOperationException(node.line, node.column))
             }
-            Result.success(state.plus(listOf(left, right).flatten().plus(op)))
+            Result.success(state.plus(listOf(left, right).flatten().plus(op).plus("call")))
         }
 
         is ASTNode.FunctionCallNode -> {
@@ -90,7 +96,7 @@ fun generateFunctionBody(
                         .plus(
                             listOf(
                                 "lit $continueLabel",
-                                "jmp",
+                                "jump",
 
                                 "$elseLabel:"
                             )
@@ -98,7 +104,7 @@ fun generateFunctionBody(
                         .plus(elseBlock)
                         .plus(
                             listOf(
-                                continueLabel,
+                                "$continueLabel:",
                                 "nop"
                             )
                         )
