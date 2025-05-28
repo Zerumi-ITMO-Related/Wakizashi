@@ -97,7 +97,6 @@ fun generateFunctionBody(
                             listOf(
                                 "lit $continueLabel",
                                 "jump",
-
                                 "$elseLabel:"
                             )
                         )

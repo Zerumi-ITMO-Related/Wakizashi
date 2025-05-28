@@ -342,7 +342,8 @@ equals:
                 swap                ; num1_link num2
                 load                ; num1 num2_link
                 sub                 ; 0/not0
-                lit equals_pass     ; 0 equals_pass
+                lit equals_pass     ; 0/not0 equals_pass
+                swap                ; equals_pass 0/not0
                 jz                  ; <empty>
                 lit 0               ; 0
                 lit equals_set_res  ; 0 equals_set_res
@@ -367,6 +368,7 @@ not_equals:
                 load                ; num1 num2
                 sub                 ; 0/not0
                 lit not_equals_pass ; 0 not_equals_pass
+                swap                ; equals_pass 0/not0
                 jz                  ; <empty>
                 lit 1               ; 1
                 lit not_eq_set_res  ; 1 not_eq_set_res

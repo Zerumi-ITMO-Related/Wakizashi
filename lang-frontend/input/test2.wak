@@ -1,6 +1,4 @@
-val b: Int = 14;
-
-fun factorial(n: Int) : Int {
+fun factorial(n : Int) : Int {
     if (n == 0) {
         return 1;
     } else {
@@ -11,7 +9,7 @@ fun factorial(n: Int) : Int {
 }
 
 fun main() : Unit {
-    val a: Int = 10;
-    val b: Int = factorial(a) + 12;
-    print_number(b);
+    print_number(factorial(1));
+
+    return Unit;
 }

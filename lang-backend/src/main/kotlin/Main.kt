@@ -13,13 +13,13 @@ fun main() {
     val ast = json.decodeFromString<ASTNode>(generateSequence { readlnOrNull() }.joinToString("\n"))
     checkASTSemantic(ast).fold(onSuccess = {
         generateSasm(ast).fold(onSuccess = { println(it) }, onFailure = {
-            println("Code generation error: $it")
-            if (it is CodegenException) println("On generating line ${it.line}, column: ${it.column + 1}")
+            System.err.println("Code generation error: $it")
+            if (it is CodegenException) System.err.println("On generating line ${it.line}, column: ${it.column + 1}")
             exitProcess(1)
         })
     }, onFailure = {
-        println("Invalid AST: $it (cause by ${it.cause})")
-        if (it is ASTValidationException) println("On line ${it.line}, column: ${it.column + 1}")
+        System.err.println("Invalid AST: $it (cause by ${it.cause})")
+        if (it is ASTValidationException) System.err.println("On line ${it.line}, column: ${it.column + 1}")
         exitProcess(1)
     })
 }

@@ -7,69 +7,182 @@
       "line": 1,
       "column": 0,
       "type": "FUN_DECLARATION",
-      "name": "main",
-      "returnType": "Unit",
-      "params": [      ],
+      "name": "is_equal",
+      "returnType": "Int",
+      "params": [
+        { "name": "a", "paramType": "Int" },
+        { "name": "b", "paramType": "Int" }      ],
       "body":
         {
           "line": 1,
-          "column": 18,
+          "column": 35,
           "type": "BLOCK",
           "children": [
             {
               "line": 2,
               "column": 4,
-              "type": "FUN_CALL",
-              "name": "print",
-              "args": [
+              "type": "RETURN",
+              "value":
                 {
                   "line": 2,
-                  "column": 10,
-                  "type": "LITERAL",
-                  "value": "\"Hello, world!\"",
-                  "valType": "String"
-                }
-              ]
-            },
-            {
-              "line": 3,
-              "column": 4,
-              "type": "FUN_CALL",
-              "name": "print_number",
-              "args": [
-                {
-                  "line": 3,
-                  "column": 19,
+                  "column": 13,
                   "type": "BIN_OP",
-                  "op": "+",
+                  "op": "==",
                   "left":
                     {
-                      "line": 3,
-                      "column": 17,
-                      "type": "LITERAL",
-                      "value": "2",
-                      "valType": "Int"
+                      "line": 2,
+                      "column": 11,
+                      "type": "IDENT",
+                      "name": "a"
                     },
                   "right":
                     {
-                      "line": 3,
-                      "column": 21,
-                      "type": "LITERAL",
-                      "value": "3",
-                      "valType": "Int"
-                    }                }
-              ]
+                      "line": 2,
+                      "column": 16,
+                      "type": "IDENT",
+                      "name": "b"
+                    }                }            }
+          ]
+        }
+    },
+    {
+      "line": 5,
+      "column": 0,
+      "type": "FUN_DECLARATION",
+      "name": "main",
+      "returnType": "Unit",
+      "params": [      ],
+      "body":
+        {
+          "line": 5,
+          "column": 18,
+          "type": "BLOCK",
+          "children": [
+            {
+              "line": 6,
+              "column": 4,
+              "type": "VAL_DECLARATION",
+              "name": "a1",
+              "valType": "Int",
+              "initializer":
+                {
+                  "line": 6,
+                  "column": 18,
+                  "type": "LITERAL",
+                  "value": "10",
+                  "valType": "Int"
+                }
             },
             {
-              "line": 4,
+              "line": 7,
+              "column": 4,
+              "type": "VAL_DECLARATION",
+              "name": "b1",
+              "valType": "Int",
+              "initializer":
+                {
+                  "line": 7,
+                  "column": 18,
+                  "type": "LITERAL",
+                  "value": "20",
+                  "valType": "Int"
+                }
+            },
+            {
+              "line": 8,
+              "column": 4,
+              "type": "VAL_DECLARATION",
+              "name": "c",
+              "valType": "Int",
+              "initializer":
+                {
+                  "line": 8,
+                  "column": 17,
+                  "type": "FUN_CALL",
+                  "name": "is_equal",
+                  "args": [
+                    {
+                      "line": 8,
+                      "column": 26,
+                      "type": "IDENT",
+                      "name": "a1"
+                    },
+                    {
+                      "line": 8,
+                      "column": 30,
+                      "type": "IDENT",
+                      "name": "b1"
+                    }
+                  ]
+                }
+            },
+            {
+              "line": 9,
+              "column": 4,
+              "type": "IF",
+              "condition":
+                {
+                  "line": 9,
+                  "column": 8,
+                  "type": "IDENT",
+                  "name": "c"
+                },
+              "then":
+                {
+                  "line": 9,
+                  "column": 11,
+                  "type": "BLOCK",
+                  "children": [
+                    {
+                      "line": 10,
+                      "column": 8,
+                      "type": "FUN_CALL",
+                      "name": "print",
+                      "args": [
+                        {
+                          "line": 10,
+                          "column": 14,
+                          "type": "LITERAL",
+                          "value": "\"Equals\"",
+                          "valType": "String"
+                        }
+                      ]
+                    }
+                  ]
+                },
+              "else":
+                {
+                  "line": 11,
+                  "column": 11,
+                  "type": "BLOCK",
+                  "children": [
+                    {
+                      "line": 12,
+                      "column": 8,
+                      "type": "FUN_CALL",
+                      "name": "print",
+                      "args": [
+                        {
+                          "line": 12,
+                          "column": 14,
+                          "type": "LITERAL",
+                          "value": "\"Not Equals\"",
+                          "valType": "String"
+                        }
+                      ]
+                    }
+                  ]
+                }            },
+            {
+              "line": 14,
               "column": 4,
               "type": "RETURN",
               "value":
                 {
-                  "line": 4,
+                  "line": 14,
                   "column": 11,
                   "type": "LITERAL",
-                  "value": "3",
+                  "value": "\"Not Equals\"",
                   "valType": "Unit"
                 }            }
           ]

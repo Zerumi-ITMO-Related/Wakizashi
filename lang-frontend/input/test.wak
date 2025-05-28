@@ -1,5 +1,15 @@
+fun is_equal(a: Int, b: Int) : Int {
+    return a == b;
+}
+
 fun main() : Unit {
-    print("Hello, world!");
-    print_number(2 + 3);
+    val a1: Int = 10 + 10;
+    val b1: Int = 20;
+    val c: Int = is_equal(a1, b1);
+    if (c) {
+        print("Equals");
+    } else {
+        print("Not Equals");
+    }
     return Unit;
 }
