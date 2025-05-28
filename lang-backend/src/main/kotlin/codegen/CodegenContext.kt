@@ -39,3 +39,15 @@ enum class LiteralTypes {
     BOOLEAN,
     UNIT
 }
+
+fun stdlibContext() = CodegenContext(
+    functions = listOf(
+        FunctionDeclaration(
+            "print",
+            listOf(
+                "lit print_str",
+                "jump"
+            )
+        )
+    )
+)

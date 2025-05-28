@@ -19,7 +19,7 @@ fun checkASTSemantic(ast: ASTNode): Result<SemanticContext> = ASTVisitor(
     visitIfNode = ::visitIfNode,
     visitLiteralNode = ::visitLiteralNode,
     visitUnknownNode = ::visitUnknownNode
-).visitAST(ast, SemanticContext())
+).visitAST(ast, stdlibContext())
 
 fun visitProgramNode(
     ast: ASTNode.ProgramNode, state: SemanticContext, astVisitor: ASTVisitor<SemanticContext>

@@ -28,3 +28,13 @@ data class FunctionDeclaration(
 enum class LiteralTypes {
     INT, STRING, BOOLEAN, UNIT,
 }
+
+fun stdlibContext() = SemanticContext(
+    functions = listOf(
+        FunctionDeclaration(
+            name = "print",
+            params = listOf(VariableDeclaration("str", "String")),
+            returnType = "Unit"
+        )
+    )
+)

@@ -1,11 +1,4 @@
-fun factorial(n: Int): Int {
-    return 0;
-}
-
-fun println(s: String, s2: String) : Unit {
-    return Unit;
-}
-
 fun main() : Unit {
-    println("Hello, world!");
+    print("Hello, world!");
+    return Unit;
 }

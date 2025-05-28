@@ -25,6 +25,12 @@ fun generateSasmFromContext(context: CodegenContext) = buildString {
         this.appendLine("${it.label}:")
         this.appendLine(it.assembly.joinToString("\n"))
     }
+
+    // and generate entry point
+    this.appendLine("start:")
+    this.appendLine("lit main")
+    this.appendLine("call")
+    this.appendLine("halt")
 }
 
 fun generateCodegenContextFromAST(ast: ASTNode): Result<CodegenContext> = ASTVisitor(
@@ -39,7 +45,7 @@ fun generateCodegenContextFromAST(ast: ASTNode): Result<CodegenContext> = ASTVis
     visitIfNode = ::visitIfNode,
     visitLiteralNode = ::visitLiteralNode,
     visitUnknownNode = ::visitUnknownNode
-).visitAST(ast, CodegenContext())
+).visitAST(ast, stdlibContext())
 
 fun visitProgramNode(
     ast: ASTNode.ProgramNode, state: CodegenContext, astVisitor: ASTVisitor<CodegenContext>
