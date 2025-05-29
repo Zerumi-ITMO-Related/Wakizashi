@@ -74,7 +74,8 @@ class CompilerCLI : CliktCommand() {
             "-o",
             stdout.pathString,
             "-l",
-            "/dev/null"
+            // "/dev/null"
+            "/Users/zerumi/waki-journal.log"
         )
             .redirectError(ProcessBuilder.Redirect.INHERIT)
             .start()

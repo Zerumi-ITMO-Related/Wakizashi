@@ -7,14 +7,14 @@
       "line": 1,
       "column": 0,
       "type": "FUN_DECLARATION",
-      "name": "rec",
+      "name": "factorial",
       "returnType": "Unit",
       "params": [
         { "name": "n", "paramType": "Int" }      ],
       "body":
         {
           "line": 1,
-          "column": 22,
+          "column": 30,
           "type": "BLOCK",
           "children": [
             {
@@ -39,7 +39,7 @@
                       "line": 2,
                       "column": 13,
                       "type": "LITERAL",
-                      "value": "0",
+                      "value": "1",
                       "valType": "Int"
                     }                },
               "then":
@@ -57,7 +57,7 @@
                           "line": 3,
                           "column": 15,
                           "type": "LITERAL",
-                          "value": "0",
+                          "value": "1",
                           "valType": "Unit"
                         }                    }
                   ]
@@ -72,24 +72,24 @@
                       "line": 5,
                       "column": 8,
                       "type": "FUN_CALL",
-                      "name": "rec",
+                      "name": "factorial",
                       "args": [
                         {
                           "line": 5,
-                          "column": 14,
+                          "column": 20,
                           "type": "BIN_OP",
                           "op": "-",
                           "left":
                             {
                               "line": 5,
-                              "column": 12,
+                              "column": 18,
                               "type": "IDENT",
                               "name": "n"
                             },
                           "right":
                             {
                               "line": 5,
-                              "column": 16,
+                              "column": 22,
                               "type": "LITERAL",
                               "value": "1",
                               "valType": "Int"
@@ -123,18 +123,18 @@
       "body":
         {
           "line": 11,
-          "column": 17,
+          "column": 18,
           "type": "BLOCK",
           "children": [
             {
               "line": 12,
               "column": 4,
               "type": "FUN_CALL",
-              "name": "rec",
+              "name": "factorial",
               "args": [
                 {
                   "line": 12,
-                  "column": 8,
+                  "column": 14,
                   "type": "LITERAL",
                   "value": "2",
                   "valType": "Int"
@@ -142,12 +142,12 @@
               ]
             },
             {
-              "line": 13,
+              "line": 14,
               "column": 4,
               "type": "RETURN",
               "value":
                 {
-                  "line": 13,
+                  "line": 14,
                   "column": 11,
                   "type": "LITERAL",
                   "value": "2",

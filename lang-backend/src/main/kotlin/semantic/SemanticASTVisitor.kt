@@ -49,7 +49,7 @@ fun visitFunctionDeclarationNode(
     )
     if (returnType.uppercase() != LiteralTypes.UNIT.name && returnType != blockReturnType)
         return Result.failure(WrongReturnTypeException(ast.line, ast.column))
-    astVisitor.visitAST(ast.body, state.withVariables(params)).onFailure { return Result.failure(it) }
+    astVisitor.visitAST(ast.body, state.withVariables(params).withFunction(FunctionDeclaration(name, params, returnType))).onFailure { return Result.failure(it) }
     return Result.success(state.withFunction(FunctionDeclaration(name, params, returnType)))
 }
 

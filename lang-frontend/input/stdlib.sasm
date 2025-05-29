@@ -222,7 +222,6 @@ print_digit:
 ; returns nothing
 ; usage: lit arg + lit print_number + call
 print_number:
-                load                ; num
                 lit -1              ; num -1
                 swap                ; -1 num
                 dup                 ; -1 num num
@@ -265,72 +264,39 @@ loop2:
                 lit loop2           ; loop2
                 jump                ;
 break:
+                drop                ;
                 ret                 ;
 
 ; adds 2 ints by reference
 ; consumed operand: num1_link num2_link
 ; returns link to num1 + num2
 ; usage: lit num1_link + lit num2_link + lit add + call
-result_add:
-                word 0              ; result accumulator
 add:
-                load                ; num2 num1_link
-                swap                ; num1_link num2
-                load                ; num1 num2
                 add                 ; result
-                lit result_add      ; result result_link
-                store               ; <empty>
-                lit result_add      ; result_link
                 ret                 ; result_link 
 
 ; subtracts 2 ints by reference
 ; consumed operand: num1_link num2_link
 ; returns link to num2 - num1
 ; usage: lit num1_link + lit num2_link + lit add + call
-result_sub:
-                word 0
 sub:
-                load                ; num2 num1_link
-                swap                ; num1_link num2
-                load                ; num1 num2
-                swap                ; num2 num1
                 sub                 ; result
-                lit result_sub      ; result result_link
-                store               ; <empty>
-                lit result_sub      ; result_link
                 ret                 ; result_link 
 
 ; multiply 2 ints by reference
 ; consumed operand: num1_link num2_link
 ; returns link to num1 * num2
 ; usage: lit num1_link + lit num2_link + lit add + call
-result_mul:
-                word 0
 mul:
-                load                ; num2 num1_link
-                swap                ; num1_link num2
-                load                ; num1 num2
                 mul                 ; result
-                lit result_mul      ; result result_link
-                store               ; <empty>
-                lit result_mul      ; result_link
                 ret                 ; result_link 
 
 ; divides 2 ints by reference
 ; consumed operand: num1_link num2_link
 ; returns link to num2 / num1
 ; usage: lit num1_link + lit num2_link + lit add + call
-result_div:
-                word 0
 div:
-                load                ; num2 num1_link
-                swap                ; num1_link num2
-                load                ; num1 num2
-                swap                ; num2 num1
                 div                 ; result
-                lit result_div      ; result result_link
-                store               ; <empty>
-                lit result_div      ; result_link
                 ret                 ; result_link 
 
 ; perfoms equality check of 2 ints by reference
@@ -340,9 +306,6 @@ div:
 result_equals:
                 word 0
 equals:
-                load                ; num2 num1_link
-                swap                ; num1_link num2
-                load                ; num1 num2_link
                 sub                 ; 0/not0
                 lit equals_pass     ; 0/not0 equals_pass
                 swap                ; equals_pass 0/not0
@@ -353,10 +316,7 @@ equals:
 equals_pass:
                 lit 1               ; 1
 equals_set_res:
-                lit result_equals      ; result result_link
-                store               ; <empty>
-                lit result_equals      ; result_link
-                ret                 ; result_link 
+                ret                 ; 0/1 
 
 ; perfoms reverse equality check of 2 ints by reference
 ; consumed operand: num1_link num2_link
@@ -365,9 +325,6 @@ equals_set_res:
 result_not_equals:
                 word 0
 not_equals:
-                load                ; num2 num1_link
-                swap                ; num1_link num2
-                load                ; num1 num2
                 sub                 ; 0/not0
                 lit not_equals_pass ; 0 not_equals_pass
                 swap                ; equals_pass 0/not0
@@ -378,10 +335,7 @@ not_equals:
 not_equals_pass:
                 lit 0               ; 0
 not_eq_set_res:
-                lit result_not_equals   ; result result_link
-                store               ; <empty>
-                lit result_not_equals   ; result_link
-                ret                 ; result_link 
+                ret                 ; 0/1 
 
 ; perfoms less check of 2 ints by reference
 ; consumed operand: num1_link num2_link

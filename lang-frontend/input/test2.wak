@@ -1,14 +1,18 @@
-fun rec(n: Int): Unit {
-    if (n == 0) {
-        return Unit;
+fun factorial(n : Int) : Int {
+    if (n == 1) {
+        return 1;
     } else {
-        rec(n - 1);
+        val fac: Int = n * factorial(n - 1);
+        return fac;
     }
 
-    return Unit;
+    return 0;
 }
 
-fun main(): Unit {
-    rec(2);
+fun main() : Unit {
+    val fac_res: Int = factorial(4);
+
+    print_number(fac_res);
+
     return Unit;
 }

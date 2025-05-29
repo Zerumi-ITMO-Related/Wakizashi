@@ -67,11 +67,25 @@
               "initializer":
                 {
                   "line": 6,
-                  "column": 18,
-                  "type": "LITERAL",
-                  "value": "10",
-                  "valType": "Int"
-                }
+                  "column": 21,
+                  "type": "BIN_OP",
+                  "op": "-",
+                  "left":
+                    {
+                      "line": 6,
+                      "column": 18,
+                      "type": "LITERAL",
+                      "value": "40",
+                      "valType": "Int"
+                    },
+                  "right":
+                    {
+                      "line": 6,
+                      "column": 23,
+                      "type": "LITERAL",
+                      "value": "21",
+                      "valType": "Int"
+                    }                }
             },
             {
               "line": 7,
@@ -137,14 +151,14 @@
                       "line": 10,
                       "column": 8,
                       "type": "FUN_CALL",
-                      "name": "print",
+                      "name": "print_number",
                       "args": [
                         {
                           "line": 10,
-                          "column": 14,
+                          "column": 21,
                           "type": "LITERAL",
-                          "value": "\"Equals\"",
-                          "valType": "String"
+                          "value": "42",
+                          "valType": "Int"
                         }
                       ]
                     }
@@ -160,14 +174,14 @@
                       "line": 12,
                       "column": 8,
                       "type": "FUN_CALL",
-                      "name": "print",
+                      "name": "print_number",
                       "args": [
                         {
                           "line": 12,
-                          "column": 14,
+                          "column": 21,
                           "type": "LITERAL",
-                          "value": "\"Not Equals\"",
-                          "valType": "String"
+                          "value": "99",
+                          "valType": "Int"
                         }
                       ]
                     }
@@ -182,7 +196,7 @@
                   "line": 14,
                   "column": 11,
                   "type": "LITERAL",
-                  "value": "\"Not Equals\"",
+                  "value": "99",
                   "valType": "Unit"
                 }            }
           ]
