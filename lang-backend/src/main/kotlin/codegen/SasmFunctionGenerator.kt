@@ -10,23 +10,24 @@ import java.util.*
 fun generateFunctionBody(
     node: ASTNode,
     codegenState: CodegenContext,
+    currentFunction: ASTNode.FunctionDeclarationNode,
     state: List<String> = emptyList()
 ): Result<List<String>> {
     return when (node) {
         is ASTNode.BlockNode -> {
             return node.children.fold(Result.success(state)) { ctx, child ->
                 ctx.fold(
-                    onSuccess = { generateFunctionBody(child, codegenState, it) },
+                    onSuccess = { generateFunctionBody(child, codegenState, currentFunction, it) },
                     onFailure = { Result.failure(it) })
             }
         }
 
         is ASTNode.BinaryOperationNode -> {
-            val left = generateFunctionBody(node.left, codegenState).fold(
+            val left = generateFunctionBody(node.left, codegenState, currentFunction).fold(
                 onSuccess = { it },
                 onFailure = { return Result.failure(it) }
             )
-            val right = generateFunctionBody(node.right, codegenState).fold(
+            val right = generateFunctionBody(node.right, codegenState, currentFunction).fold(
                 onSuccess = { it },
                 onFailure = { return Result.failure(it) }
             )
@@ -49,30 +50,58 @@ fun generateFunctionBody(
         is ASTNode.FunctionCallNode -> {
             val args = node.args.reversed().fold(Result.success(emptyList<String>())) { ctx, child ->
                 ctx.fold(
-                    onSuccess = { generateFunctionBody(child, codegenState, it) },
+                    onSuccess = { generateFunctionBody(child, codegenState, currentFunction, it) },
                     onFailure = { Result.failure(it) })
             }.fold(
                 onSuccess = { it },
                 onFailure = { return Result.failure(it) }
             )
+            // stack:
+            // arg1Value
+            // arg1Link
+            val saveParams = currentFunction.params.map {
+                listOf(
+                    "lit ${it.name}",   // arg_ref_ref
+                    "load",             // arg_ref
+                    "dup",              // arg_ref arg_ref
+                    "load",             // arg arg_ref
+                    "lit push",         // push arg arg_ref
+                    "call",             // arg_ref
+                    "lit push",         // push arg_ref
+                    "call",             // <empty>
+                )
+            }.flatten()
             val functionDeclaration = "lit ${node.name}"
             val call = "call"
-            Result.success(state.plus(args.plus(functionDeclaration).plus(call)))
+            val restoreParams = currentFunction.params.reversed().map {
+                listOf(
+                    "lit pop",          // pop
+                    "call",             // arg_ref
+                    "lit ${it.name}",   // arg_ref_ref arg_ref
+                    "store",            // <empty>
+                    "lit pop",          // pop
+                    "call",             // arg
+                    "lit ${it.name}",   // arg_ref_ref arg
+                    "load",             // arg_ref arg
+                    "store"             // <empty>
+                )
+            }.flatten()
+            Result.success(state.plus(args.plus(functionDeclaration).plus(saveParams).plus(call).plus(restoreParams)))
         }
 
         is ASTNode.IdentNode -> Result.success(state.plus(listOf("lit ${node.name}", "load")))
         is ASTNode.IfNode -> {
-            val thenBlock = generateFunctionBody(node.then, codegenState).fold(
+            val thenBlock = generateFunctionBody(node.then, codegenState, currentFunction).fold(
                 onSuccess = { it },
                 onFailure = { return Result.failure(it) }
             )
             val elseBlock = node.`else`?.let {
-                generateFunctionBody(it, codegenState).fold(
+                generateFunctionBody(it, codegenState, currentFunction).fold(
                     onSuccess = { it },
                     onFailure = { return Result.failure(it) }
                 )
             } ?: emptyList()
-            val condition = generateFunctionBody(node.condition, codegenState).fold(
+            val condition = generateFunctionBody(node.condition, codegenState, currentFunction).fold(
                 onSuccess = { it },
                 onFailure = { return Result.failure(it) }
             )
@@ -113,7 +142,7 @@ fun generateFunctionBody(
         }
 
         is ASTNode.ReturnNode -> {
-            val returnValues = generateFunctionBody(node.value, codegenState).fold(
+            val returnValues = generateFunctionBody(node.value, codegenState, currentFunction).fold(
                 onSuccess = { it },
                 onFailure = { return Result.failure(it) }
             )

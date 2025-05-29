@@ -1,15 +1,14 @@
-fun factorial(n : Int) : Int {
+fun rec(n: Int): Unit {
     if (n == 0) {
-        return 1;
+        return Unit;
     } else {
-        return n * factorial(n - 1);
+        rec(n - 1);
     }
 
-    return 0;
+    return Unit;
 }
 
-fun main() : Unit {
-    print_number(factorial(1));
-
+fun main(): Unit {
+    rec(2);
     return Unit;
 }

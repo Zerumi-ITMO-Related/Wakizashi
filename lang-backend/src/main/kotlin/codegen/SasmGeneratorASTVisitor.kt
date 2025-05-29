@@ -96,7 +96,7 @@ fun visitFunctionDeclarationNode(
     }.flatten()
     val functionDeclaration = FunctionDeclaration(
         ast.name,
-        generateFunctionBody(ast.body, stateWithLiterals).fold(
+        generateFunctionBody(ast.body, stateWithLiterals, ast).fold(
             onSuccess = { paramInit.plus(it) },
             onFailure = { return Result.failure(it) }
         )
@@ -138,7 +138,15 @@ fun visitValueDeclarationNode(
         label = ast.name
     )
     val initFunction =
-        FunctionDeclaration("init_${ast.name}", generateFunctionBody(ast.initializer, stateWithLiterals).fold(
+        FunctionDeclaration("init_${ast.name}", generateFunctionBody(ast.initializer, stateWithLiterals,
+            ASTNode.FunctionDeclarationNode(
+                "init_${ast.name}",
+                returnType = ast.valType,
+                params = emptyList(),
+                body = ast.initializer,
+                line = ast.line,
+                column = ast.column
+            )).fold(
             onSuccess = { it.plus(listOf("lit ${ast.name}", "store", "ret")) },
             onFailure = { return Result.failure(it) }
         ))

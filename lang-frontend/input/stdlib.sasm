@@ -285,7 +285,7 @@ add:
 
 ; subtracts 2 ints by reference
 ; consumed operand: num1_link num2_link
-; returns link to num1 - num2
+; returns link to num2 - num1
 ; usage: lit num1_link + lit num2_link + lit add + call
 result_sub:
                 word 0
@@ -293,6 +293,7 @@ sub:
                 load                ; num2 num1_link
                 swap                ; num1_link num2
                 load                ; num1 num2
+                swap                ; num2 num1
                 sub                 ; result
                 lit result_sub      ; result result_link
                 store               ; <empty>
@@ -317,7 +318,7 @@ mul:
 
 ; divides 2 ints by reference
 ; consumed operand: num1_link num2_link
-; returns link to num1 / num2
+; returns link to num2 / num1
 ; usage: lit num1_link + lit num2_link + lit add + call
 result_div:
                 word 0
@@ -325,6 +326,7 @@ div:
                 load                ; num2 num1_link
                 swap                ; num1_link num2
                 load                ; num1 num2
+                swap                ; num2 num1
                 div                 ; result
                 lit result_div      ; result result_link
                 store               ; <empty>
@@ -449,6 +451,36 @@ or:
                 store               ; <empty>
                 lit result_or       ; result_link
                 ret                 ; result_link 
+
+; ##############
+; Stack
+; ##############
+
+stack_pointer:
+                word stack
+
+stack:
+                buf 70
+
+push:
+                lit stack_pointer   ; stack_pointer_ref value
+                load                ; stack_pointer value
+                over                ; stack_pointer value stack_pointer
+                store               ; stack_pointer
+                inc                 ; stack_pointer + 1 -> stack_pointer value
+                lit stack_pointer   ; stack_pointer_ref stack_pointer
+                store               ; <empty>
+                ret                 ; <empty>
+
+pop:
+                lit stack_pointer   ; stack_pointer_ref
+                load                ; stack_pointer
+                dec                 ; stack_pointer - 1 -> stack_pointer
+                dup                 ; stack_pointer stack_pointer
+                lit stack_pointer   ; stack_pointer_ref stack_pointer stack_pointer
+                store               ; stack_pointer
+                load                ; value
+                ret                 ; value
 
 ; ##############
 ; User section
