@@ -7,9 +7,9 @@ fun main() : Unit {
     val b1: Int = 20;
     val c: Int = is_equal(a1, b1);
     if (c) {
-        print_number(42);
+        print("Equals");
     } else {
-        print_number(99);
+        print("Not Equals");
     }
     return Unit;
 }

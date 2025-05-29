@@ -31,6 +31,7 @@ data class LiteralDeclaration(
     val label: String,
     val value: String,
     val literals: List<Int>,
+    val isReferenceAccess: Boolean,
 )
 
 enum class LiteralTypes {

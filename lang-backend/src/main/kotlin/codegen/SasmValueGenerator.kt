@@ -1,5 +1,7 @@
 package codegen
 
+import ASTNode
+
 /*
 val b: Int = 14 ->
 
@@ -53,3 +55,11 @@ fun generateLiterals(literal: String, type: LiteralTypes): List<Int> {
         LiteralTypes.UNIT -> listOf(0)
     }
 }
+
+fun isReferenceAccess(literal: ASTNode.LiteralNode): Boolean =
+    when (LiteralTypes.valueOf(literal.valType.uppercase())) {
+        LiteralTypes.INT -> false
+        LiteralTypes.STRING -> true
+        LiteralTypes.BOOLEAN -> false
+        LiteralTypes.UNIT -> false
+    }

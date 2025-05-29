@@ -19,7 +19,15 @@ fun generateSasmFromContext(context: CodegenContext) = buildString {
     }
     context.literals.forEach { literal ->
         this.appendLine("${literal.label}:")
-        this.appendLine(literal.literals.joinToString("\n") { "word $it" })
+        if (literal.isReferenceAccess)
+            this.appendLine("word ${literal.label}-reference")
+        else
+            this.appendLine(literal.literals.joinToString("\n") { "word $it" })
+
+        if (literal.isReferenceAccess) {
+            this.appendLine("${literal.label}-reference:")
+            this.appendLine(literal.literals.joinToString("\n") { "word $it" })
+        }
     }
     context.functions.forEach {
         this.appendLine("${it.label}:")
@@ -177,7 +185,7 @@ fun visitLiteralNode(
     astVisitor: ASTVisitor<CodegenContext>
 ): Result<CodegenContext> {
     val wordList = generateLiterals(ast.value, LiteralTypes.valueOf(ast.valType.uppercase()))
-    val literal = LiteralDeclaration("lit-${state.literals.size}", ast.value, wordList)
+    val literal = LiteralDeclaration("lit-${state.literals.size}", ast.value, wordList, isReferenceAccess(ast))
     return Result.success(state.withLiteral(literal))
 }
 
