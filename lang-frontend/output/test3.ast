@@ -21,17 +21,88 @@
               "column": 4,
               "type": "VAL_DECLARATION",
               "name": "a",
-              "valType": "String",
+              "valType": "Int",
               "initializer":
                 {
                   "line": 2,
-                  "column": 20,
+                  "column": 17,
                   "type": "FUN_CALL",
-                  "name": "readln",
+                  "name": "parse_int",
                   "args": [
+                    {
+                      "line": 2,
+                      "column": 27,
+                      "type": "FUN_CALL",
+                      "name": "readln",
+                      "args": [
+                      ]
+                    }
                   ]
                 }
-            }
+            },
+            {
+              "line": 3,
+              "column": 4,
+              "type": "VAL_DECLARATION",
+              "name": "b",
+              "valType": "Int",
+              "initializer":
+                {
+                  "line": 3,
+                  "column": 17,
+                  "type": "FUN_CALL",
+                  "name": "parse_int",
+                  "args": [
+                    {
+                      "line": 3,
+                      "column": 27,
+                      "type": "FUN_CALL",
+                      "name": "readln",
+                      "args": [
+                      ]
+                    }
+                  ]
+                }
+            },
+            {
+              "line": 5,
+              "column": 4,
+              "type": "FUN_CALL",
+              "name": "print_number",
+              "args": [
+                {
+                  "line": 5,
+                  "column": 19,
+                  "type": "BIN_OP",
+                  "op": "+",
+                  "left":
+                    {
+                      "line": 5,
+                      "column": 17,
+                      "type": "IDENT",
+                      "name": "a"
+                    },
+                  "right":
+                    {
+                      "line": 5,
+                      "column": 21,
+                      "type": "IDENT",
+                      "name": "b"
+                    }                }
+              ]
+            },
+            {
+              "line": 7,
+              "column": 4,
+              "type": "RETURN",
+              "value":
+                {
+                  "line": 7,
+                  "column": 11,
+                  "type": "LITERAL",
+                  "value": "b",
+                  "valType": "Unit"
+                }            }
           ]
         }
     }

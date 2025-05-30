@@ -365,10 +365,10 @@ not_eq_set_res:
 ; returns link to 1/0 - true or false
 ; usage: lit num1_link + lit num2_link + lit add + call
 less:
-                sub                 ; num2 - num1
-                lit result_less_pass; num2 - num1 result_less_pass
-                swap                ; result_less_pass num2 - num1
-                jn                  ; num2 - num1 
+                sub                 ; num1 - num2
+                lit result_less_pass; num1 - num2 result_less_pass
+                swap                ; result_less_pass num1 - num2
+                jn                  ; num1 - num2 
                 lit 0               ; 0
                 lit result_less_ret ; 0 result_less_ret
                 jump                ; 0
@@ -383,13 +383,13 @@ result_less_ret:
 ; usage: lit num1_link + lit num2_link + lit add + call
 result_more:
                 word 0
-more:
-                sub                 ; num2 - num1
-                lit result_less_pass; num2 - num1 result_less_pass
-                swap                ; result_less_pass num2 - num1
-                jn                  ; num2 - num1 
+more:                               ; num1 > num2 -> num2 - num1 < 0
+                sub                 ; num1 - num2
+                lit result_more_pass; num1 - num2 result_more_pass
+                swap                ; result_less_pass num1 - num2
+                jn                  ; num1 - num2
                 lit 1               ; 1
-                lit result_less_ret ; 1 result_less_ret
+                lit result_more_ret ; 1 result_more_ret
                 jump                ; 1
 result_more_pass:
                 lit 0               ; 0

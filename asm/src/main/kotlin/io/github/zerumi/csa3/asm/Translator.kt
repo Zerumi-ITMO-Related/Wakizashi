@@ -121,7 +121,7 @@ private fun translatePart2(
                     resultInstructions.add(
                         MemoryCell.OperandInstruction(
                             memoryCell.opcode,
-                            labels[labelInstruction.label]!!
+                            labels[labelInstruction.label] ?: throw RuntimeException("Unknown label ${labelInstruction.label}")
                         )
                     )
                 }

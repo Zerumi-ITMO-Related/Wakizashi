@@ -83,7 +83,7 @@
                       "line": 6,
                       "column": 23,
                       "type": "LITERAL",
-                      "value": "21",
+                      "value": "20",
                       "valType": "Int"
                     }                }
             },
@@ -137,28 +137,55 @@
               "condition":
                 {
                   "line": 9,
-                  "column": 8,
-                  "type": "IDENT",
-                  "name": "c"
-                },
+                  "column": 10,
+                  "type": "BIN_OP",
+                  "op": "&&",
+                  "left":
+                    {
+                      "line": 9,
+                      "column": 8,
+                      "type": "IDENT",
+                      "name": "c"
+                    },
+                  "right":
+                    {
+                      "line": 9,
+                      "column": 17,
+                      "type": "BIN_OP",
+                      "op": ">",
+                      "left":
+                        {
+                          "line": 9,
+                          "column": 14,
+                          "type": "IDENT",
+                          "name": "a1"
+                        },
+                      "right":
+                        {
+                          "line": 9,
+                          "column": 19,
+                          "type": "LITERAL",
+                          "value": "10",
+                          "valType": "Int"
+                        }                    }                },
               "then":
                 {
                   "line": 9,
-                  "column": 11,
+                  "column": 24,
                   "type": "BLOCK",
                   "children": [
                     {
                       "line": 10,
                       "column": 8,
                       "type": "FUN_CALL",
-                      "name": "print_number",
+                      "name": "print",
                       "args": [
                         {
                           "line": 10,
-                          "column": 21,
+                          "column": 14,
                           "type": "LITERAL",
-                          "value": "42",
-                          "valType": "Int"
+                          "value": "\"Equals and a1 more than 10\"",
+                          "valType": "String"
                         }
                       ]
                     }
@@ -174,14 +201,14 @@
                       "line": 12,
                       "column": 8,
                       "type": "FUN_CALL",
-                      "name": "print_number",
+                      "name": "print",
                       "args": [
                         {
                           "line": 12,
-                          "column": 21,
+                          "column": 14,
                           "type": "LITERAL",
-                          "value": "99",
-                          "valType": "Int"
+                          "value": "\"Not Equals or a1 less/equal than 10\"",
+                          "valType": "String"
                         }
                       ]
                     }
@@ -196,7 +223,7 @@
                   "line": 14,
                   "column": 11,
                   "type": "LITERAL",
-                  "value": "99",
+                  "value": "\"Not Equals or a1 less/equal than 10\"",
                   "valType": "Unit"
                 }            }
           ]
