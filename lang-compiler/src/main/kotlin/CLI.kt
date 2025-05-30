@@ -2,6 +2,9 @@ import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.core.main
 import com.github.ajalt.clikt.parameters.arguments.argument
 import com.github.ajalt.clikt.parameters.arguments.convert
+import com.github.ajalt.clikt.parameters.options.convert
+import com.github.ajalt.clikt.parameters.options.option
+import com.github.ajalt.clikt.parameters.options.prompt
 import com.github.ajalt.clikt.parameters.types.file
 import java.io.File
 import java.util.Properties
@@ -11,6 +14,7 @@ import kotlin.io.path.writer
 
 class CompilerCLI : CliktCommand() {
     private val file: String by argument().file(mustExist = true, canBeDir = false).convert { it.readText() }
+    private val input: String by option().file(mustExist = true, canBeDir = false).convert { it.readText() }.prompt("Enter program input file")
 
     override fun run() {
         val propFile = this::class.java.getResourceAsStream("/compiler.properties")
@@ -63,6 +67,10 @@ class CompilerCLI : CliktCommand() {
         if (exitCodeAssembly != 0) error("Assembly exited with code $exitCodeAssembly")
 
         val stdin = kotlin.io.path.createTempFile()
+        stdin.writer().use {
+            it.write(input)
+        }
+
         val stdout = kotlin.io.path.createTempFile()
 
         val compProcess = ProcessBuilder(

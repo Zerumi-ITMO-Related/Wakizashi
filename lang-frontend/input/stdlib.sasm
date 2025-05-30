@@ -20,6 +20,32 @@ read_char:
 ; consumed operand: zeroed_buffer_addr
 ; returns nothing, but buffer will contain string which read from i/o
 ; usage: lit arg + lit read_string + call
+readln_shared_buf:
+                buf 75
+readln:
+                lit 75          ; buf_len
+                lit readln_shared_buf   ; buf_len readln_shared_buf
+clear_buf:
+                dup             ; buf_len readln_shared_buf readln_shared_buf
+                lit 0           ; buf_len readln_shared_buf readln_shared_buf 0
+                swap            ; buf_len readln_shared_buf 0 readln_shared_buf
+                store           ; buf_len readln_shared_buf
+                inc             ; buf_len readln_shared_buf + 1 -> readln_shared_buf
+                swap            ; readln_shared_buf buf_len
+                dec             ; readln_shared_buf buf_len - 1 -> buf_len
+                dup             ; readln_shared_buf buf_len buf_len
+                lit buf_cleared ; readln_shared_buf buf_len buf_len buf_cleared
+                swap            ; readln_shared_buf buf_len buf_cleared buf_len
+                jz              ; readln_shared_buf buf_len
+                swap            ; buf_len readln_shared_buf
+                lit clear_buf   ; buf_len readln_shared_buf clear_buf
+                jump            ; buf_len readln_shared_buf
+buf_cleared:
+                drop            ; readln_shared_buf
+                drop            ;
+                lit readln_shared_buf ; readln_shared_buf
+                lit read_string ; readln_shared_buf read_string
+                jump            ; readln_shared_buf
 read_string:
                 lit stop_read   ; str_addr stop_read
                 lit read_char   ; str_addr stop_read read_char
@@ -47,6 +73,7 @@ continue:
 stop_read:
                 swap            ; input str_addr
                 store           ;
+                lit readln_shared_buf   ; readln_shared_buf
                 ret             ;
 
 ; strlen function
@@ -302,9 +329,7 @@ div:
 ; perfoms equality check of 2 ints by reference
 ; consumed operand: num1_link num2_link
 ; returns link to 1/0 - true or false
-; usage: lit num1_link + lit num2_link + lit add + call    
-result_equals:
-                word 0
+; usage: lit num1_link + lit num2_link + lit add + call
 equals:
                 sub                 ; 0/not0
                 lit equals_pass     ; 0/not0 equals_pass
@@ -322,8 +347,6 @@ equals_set_res:
 ; consumed operand: num1_link num2_link
 ; returns link to 1/0 - true or false
 ; usage: lit num1_link + lit num2_link + lit add + call
-result_not_equals:
-                word 0
 not_equals:
                 sub                 ; 0/not0
                 lit not_equals_pass ; 0 not_equals_pass
@@ -341,19 +364,18 @@ not_eq_set_res:
 ; consumed operand: num1_link num2_link
 ; returns link to 1/0 - true or false
 ; usage: lit num1_link + lit num2_link + lit add + call
-result_less:
-                word 0
 less:
-                load                ; num2 num1_link
-                swap                ; num1_link num2
-                load                ; num1 num2
-                swap                ; num2 num1
                 sub                 ; num2 - num1
-
-                lit result_less      ; result result_link
-                store               ; <empty>
-                lit result_less      ; result_link
-                ret                 ; result_link 
+                lit result_less_pass; num2 - num1 result_less_pass
+                swap                ; result_less_pass num2 - num1
+                jn                  ; num2 - num1 
+                lit 1               ; 1
+                lit result_less_ret ; 1 result_less_ret
+                jump                ; 1
+result_less_pass:
+                lit 0               ; 0
+result_less_ret:
+                ret                 ; 0/1 
 
 ; perfoms more check of 2 ints by reference
 ; consumed operand: num1_link num2_link
@@ -362,27 +384,23 @@ less:
 result_more:
                 word 0
 more:
-                load                ; num2 num1_link
-                swap                ; num1_link num2
-                load                ; num1 num2
-                swap                ; num2 num1
-                add                 ; result
-                lit result_more      ; result result_link
-                store               ; <empty>
-                lit result_more      ; result_link
-                ret                 ; result_link 
+                sub                 ; num2 - num1
+                lit result_less_pass; num2 - num1 result_less_pass
+                swap                ; result_less_pass num2 - num1
+                jn                  ; num2 - num1 
+                lit 0               ; 0
+                lit result_less_ret ; 0 result_less_ret
+                jump                ; 0
+result_more_pass:
+                lit 1               ; 1
+result_more_ret:
+                ret                 ; 0/1 
 
 ; perfoms logical and of 2 ints by reference
 ; consumed operand: num1_link num2_link
 ; returns link to 1/0 - true or false
 ; usage: lit num1_link + lit num2_link + lit add + call
-result_and:
-                word 0
 and:
-                load                ; num2 num1_link
-                swap                ; num1_link num2
-                load                ; num1 num2
-                swap                ; num2 num1
                 add                 ; result
                 lit result_and      ; result result_link
                 store               ; <empty>

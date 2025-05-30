@@ -133,6 +133,7 @@ ASTNode *create_function_call(const char *name, ASTNode **args, size_t arg_count
 ASTNode *append_expression_list(ASTNode *list, ASTNode *expr);
 
 ASTNode *create_expression_list(ASTNode *first);
+ASTNode *create_empty_expression_list();
 
 // Функции для работы со списком узлов
 void add_child(ASTNode *parent, ASTNode *child);

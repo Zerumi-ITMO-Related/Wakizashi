@@ -192,6 +192,16 @@ ASTNode *create_expression_list(ASTNode *first) {
     return node;
 }
 
+ASTNode *create_empty_expression_list() {
+    ASTNode *node = malloc(sizeof(ASTNode));
+    node->type = NODE_FUNCTION_CALL; // временно используем NODE_FUNCTION_CALL
+    node->line = 0;
+    node->column = 0;
+    node->function_call.arg_count = 0;
+    node->function_call.arguments = NULL;
+    return node;
+}
+
 ASTNode *append_expression_list(ASTNode *list, ASTNode *expr) {
     size_t n = list->function_call.arg_count + 1;
     list->function_call.arguments = realloc(list->function_call.arguments, sizeof(ASTNode *) * n);

@@ -112,6 +112,10 @@ expression_list
     {
         $$ = append_expression_list($1, $3);
     }
+    | /* nothing */
+    {
+        $$ = create_empty_expression_list();
+    }
 ;
 
 /* return 2 + 2 */
