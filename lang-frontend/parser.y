@@ -36,8 +36,8 @@ extern ASTNode* ast_root;
 %token INT BOOLEAN STRING
 %token IF ELSE
 %token COLON SEMICOLON COMMA
-%token LPAREN RPAREN LBRACE RBRACE LESS MORE EQUAL
-%token ASSIGN PLUS MINUS MUL DIV AND OR NOT
+%token LPAREN RPAREN LBRACE RBRACE LESS MORE EQUAL NOTEQUAL
+%token ASSIGN PLUS MINUS MUL DIV AND OR
 
 %type <sval> type 
 %type <params> param param_list
@@ -184,6 +184,18 @@ expression
     | expression EQUAL expression
     {
         $$ = create_binary_operation("==", $1, $3, @2.first_line, @2.first_column);
+    }
+    | expression NOTEQUAL expression
+    {
+        $$ = create_binary_operation("!=", $1, $3, @2.first_line, @2.first_column);
+    }
+    | expression AND expression
+    {
+        $$ = create_binary_operation("&&", $1, $3, @2.first_line, @2.first_column);
+    }
+    | expression OR expression
+    {
+        $$ = create_binary_operation("||", $1, $3, @2.first_line, @2.first_column);
     }
     | LPAREN expression RPAREN
     {

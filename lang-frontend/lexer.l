@@ -72,9 +72,9 @@ void update_location() {
 "<"             { update_location(); return LESS; }
 ">"             { update_location(); return MORE; }
 "=="            { update_location(); return EQUAL; }
+"!="            { update_location(); return NOTEQUAL; }
 "&&"            { update_location(); return AND; }
 "||"            { update_location(); return OR; }
-"!"             { update_location(); return NOT; }
 
 [ \t\r]+        {
                     int i;
