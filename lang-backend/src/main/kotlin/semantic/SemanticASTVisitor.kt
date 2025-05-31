@@ -109,6 +109,18 @@ fun visitFunctionCallNode(
             ast.args.size,
         )
     )
+    ast.args.zip(callingFunction.params).map { (arg, param) ->
+        val actualType = inferType(arg, state).getOrElse { return Result.failure(it) }
+        val expectedType = param.type
+        if (!expectedType.equals(actualType, ignoreCase = true)) return Result.failure(
+            TypeMismatchException(
+                arg.line,
+                arg.column,
+                expectedType,
+                actualType
+            )
+        )
+    }
     return Result.success(state)
 }
 
