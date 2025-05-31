@@ -1,6 +1,9 @@
 plugins {
     kotlin("jvm") version "2.0.10"
+    application
 }
+
+application.mainClass = "CLIKt"
 
 group = "io.github.zerumi"
 version = "unspecified"

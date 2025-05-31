@@ -2,9 +2,11 @@ import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.core.main
 import com.github.ajalt.clikt.parameters.arguments.argument
 import com.github.ajalt.clikt.parameters.arguments.convert
+import com.github.ajalt.clikt.parameters.arguments.default
+import com.github.ajalt.clikt.parameters.groups.*
 import com.github.ajalt.clikt.parameters.options.convert
+import com.github.ajalt.clikt.parameters.options.flag
 import com.github.ajalt.clikt.parameters.options.option
-import com.github.ajalt.clikt.parameters.options.prompt
 import com.github.ajalt.clikt.parameters.types.file
 import java.io.File
 import java.util.Properties
@@ -12,86 +14,176 @@ import kotlin.io.path.pathString
 import kotlin.io.path.readText
 import kotlin.io.path.writer
 
-class CompilerCLI : CliktCommand() {
-    private val file: String by argument().file(mustExist = true, canBeDir = false).convert { it.readText() }
-    private val input: String by option().file(mustExist = true, canBeDir = false).convert { it.readText() }.prompt("Enter program input file")
+// Compiler infrastructure:
+// .wak -> .ast -> .sasm with stdlib -> .json -> stack-CPU
+
+// CLI:
+// java -jar waki-compiler.jar <input_file>
+// Options:
+// Compilation phases:
+// --show-ast
+// --show-assembly (also --show-sasm)
+// --show-journal
+// Start compilation from:
+// --from-ast <file.ast>
+// --from-assembly <file.sasm>
+// By default it starts from .wak file
+// Stop compilation at:
+// --to-ast (or just -ast)
+// --to-assembly (also --to-sasm, or just -assembly/-sasm)
+// By default it executes on Stack-CPU
+// Export compilation artifacts:
+// --export-ast <file.ast>
+// --export-sasm <file.sasm>
+// --export-journal <file.log>
+
+class CompilerCLI : CliktCommand(name = "waki-compiler") {
+    private val file: String by argument()
+        .file(mustExist = true, canBeDir = false).convert { it.readText() }
+        .default(File("/Users/zerumi/gitClone/Wakizashi/lang-frontend/input/test0.wak").readText())
+
+    enum class CompilationPhase(val order: Int, val binaryProcessName: String) {
+        WAK(0, "lang-frontend"), AST(1, "lang-backend"), SASM(2, "assembly-translator"), COMP(3, "stack-cpu"), ;
+
+        fun next(): CompilationPhase? = entries.find { it.order == this.order + 1 }
+    }
+
+    private val compilationStart by mutuallyExclusiveOptions(
+        option("--from-ast").flag().convert { CompilationPhase.AST },
+        option("--from-assembly", "--from-sasm").flag().convert { CompilationPhase.SASM },
+    ).single().default(CompilationPhase.WAK).help("Compilation pipeline", "Choose entry point of compiler")
+
+    private val compilationFinish by mutuallyExclusiveOptions(
+        option(
+            "--to-ast", "-ast", help = "Stop after generating AST"
+        ).convert { CompilationPhase.AST }, option(
+            "--to-assembly", "--to-sasm", "-assembly", "-sasm", help = "Stop after generating SASM"
+        ).convert { CompilationPhase.SASM }
+    ).single().default(CompilationPhase.COMP)
+
+    private val showAst by option("--show-ast", help = "Print the AST after parsing").flag()
+    private val showSasm by option("--show-assembly", "--show-sasm", help = "Print the generated stack assembly").flag()
+    private val showJournal by option("--show-journal", help = "Show semantic journal/log").flag()
+
+    private val exportAst by option("--export-ast", help = "Write AST to a file").file(
+        canBeDir = false, mustBeWritable = false
+    )
+    private val exportSasm by option("--export-sasm", help = "Write stack assembly to a file").file(
+        canBeDir = false, mustBeWritable = false
+    )
+    private val exportJournal by option(
+        "--export-journal", help = "Write semantic log to a file"
+    ).file(canBeDir = false, mustBeWritable = false)
 
     override fun run() {
-        val propFile = this::class.java.getResourceAsStream("/compiler.properties")
-            ?: error("No compiler.properties file found")
+        val propFile =
+            this::class.java.getResourceAsStream("/compiler.properties") ?: error("No compiler.properties file found")
         val properties = Properties().apply { load(propFile) }
 
         val frontendBinary = properties.getProperty("frontend-binary") ?: error("frontend-binary not set")
         val backendBinary = properties.getProperty("backend-binary") ?: error("backend-binary not set")
         val assemblyBinary = properties.getProperty("assembly-binary") ?: error("assembly-binary not set")
         val compBinary = properties.getProperty("comp-binary") ?: error("assembly-binary not set")
+
         val stdlib = properties.getProperty("stdlib-path") ?: error("unable to find standard library")
 
-        val frontendProcess = ProcessBuilder(frontendBinary)
-            .redirectError(ProcessBuilder.Redirect.INHERIT)
-            .start()
-
-        frontendProcess.outputStream.bufferedWriter().use { writer ->
-            writer.write(file)
-            writer.flush()
-        }
-
-        val astJson = frontendProcess.inputStream.bufferedReader().readText()
-        val exitCodeFrontend = frontendProcess.waitFor()
-        if (exitCodeFrontend != 0) error("Frontend exited with code $exitCodeFrontend")
-
-        val backendProcess = ProcessBuilder(backendBinary)
-            .redirectError(ProcessBuilder.Redirect.INHERIT)
-            .start()
-
-        backendProcess.outputStream.bufferedWriter().use { it.write(astJson); it.flush() }
-
-        val assembly = backendProcess.inputStream.bufferedReader().readText()
-
-        val exitCodeBackend = backendProcess.waitFor()
-        if (exitCodeBackend != 0) error("Backend exited with code $exitCodeBackend")
-
-        val programText = File(stdlib).readText().plus(assembly)
         val programTextFile = kotlin.io.path.createTempFile()
-        programTextFile.writer().use {
-            it.write(programText)
-        }
-
         val programMachineFile = kotlin.io.path.createTempFile()
-
-        val assemblyProcess = ProcessBuilder(assemblyBinary, programTextFile.pathString, programMachineFile.pathString)
-            .redirectError(ProcessBuilder.Redirect.INHERIT)
-            .start()
-
-        val exitCodeAssembly = assemblyProcess.waitFor()
-        if (exitCodeAssembly != 0) error("Assembly exited with code $exitCodeAssembly")
-
         val stdin = kotlin.io.path.createTempFile()
-        stdin.writer().use {
-            it.write(input)
-        }
-
         val stdout = kotlin.io.path.createTempFile()
 
-        val compProcess = ProcessBuilder(
-            compBinary,
-            "-p",
-            programMachineFile.pathString,
-            "-i",
-            stdin.pathString,
-            "-o",
-            stdout.pathString,
-            "-l",
-            // "/dev/null"
-            "/Users/zerumi/waki-journal.log"
+        fun getInputProcessor(compilationPhase: CompilationPhase): (String) -> String = when (compilationPhase) {
+            CompilationPhase.WAK -> { output -> output }
+            CompilationPhase.AST -> { it -> it }
+            CompilationPhase.SASM -> { it ->
+                val fullAsm = File(stdlib).readText() + it
+                programTextFile.writer().use {
+                    it.write(fullAsm)
+                }
+                fullAsm
+            }
+            CompilationPhase.COMP -> { it -> it }
+        }
+
+        fun getCompilerActionParameters(compilationPhase: CompilationPhase, input: String) = when (compilationPhase) {
+            CompilationPhase.WAK -> ActionParameters(
+                binary = frontendBinary,
+                input = emptyList<String>() to input,
+                startPhase = compilationStart,
+                currentPhase = CompilationPhase.WAK,
+                untilPhase = compilationFinish,
+                generateOutput = { process -> process.inputStream.bufferedReader().readText() },
+                printOutput = showAst,
+                exportOutputFile = exportAst
+            )
+
+            CompilationPhase.AST -> ActionParameters(
+                binary = backendBinary,
+                input = emptyList<String>() to input,
+                startPhase = compilationStart,
+                currentPhase = CompilationPhase.AST,
+                untilPhase = compilationFinish,
+                generateOutput = { process -> process.inputStream.bufferedReader().readText() },
+                printOutput = showSasm,
+                exportOutputFile = exportSasm
+            )
+
+            CompilationPhase.SASM -> ActionParameters(
+                binary = assemblyBinary,
+                input = listOf(
+                    programTextFile.pathString,
+                    programMachineFile.pathString
+                ) to input,
+                startPhase = compilationStart,
+                currentPhase = CompilationPhase.SASM,
+                untilPhase = compilationFinish,
+                generateOutput = { _ -> "" },
+                printOutput = false,
+                exportOutputFile = null,
+            )
+
+            CompilationPhase.COMP -> ActionParameters(
+                binary = compBinary,
+                input = listOf(
+                    "-p",
+                    programMachineFile.pathString,
+                    "-i",
+                    stdin.pathString,
+                    "-o",
+                    stdout.pathString,
+                    "-l",
+                    "/dev/null"
+                ) to input,
+                startPhase = compilationStart,
+                currentPhase = CompilationPhase.COMP,
+                untilPhase = compilationFinish,
+                generateOutput = { _ -> stdout.readText() },
+                printOutput = showJournal,
+                exportOutputFile = exportJournal
+            )
+        }
+
+        fun runSequence(sequence: ActionSequence, compilationPhase: CompilationPhase): Result<ActionSequence> =
+            sequence.prepareNextInput { output ->
+                getCompilerActionParameters(compilationPhase, getInputProcessor(compilationPhase)(output))
+            }.thenRun().fold(
+                onSuccess = {
+                    compilationPhase.next()?.let { nextPhase -> runSequence(it, nextPhase) } ?: Result.success(it)
+                },
+                onFailure = { Result.failure(it) }
+            )
+
+        val result = runFrom(getCompilerActionParameters(compilationStart, file)).fold(
+            onSuccess = {
+                compilationStart.next()?.let { nextPhase -> runSequence(it, nextPhase) } ?: Result.success(it)
+            },
+            onFailure = { Result.failure(it) }
+        ).fold(
+            onSuccess = { it.collectResult() },
+            onFailure = { error(it) }
         )
-            .redirectError(ProcessBuilder.Redirect.INHERIT)
-            .start()
 
-        val exitCodeComp = compProcess.waitFor()
-        if (exitCodeComp != 0) error("Comp exited with code $exitCodeComp")
-
-        println(stdout.readText())
+        println(result)
     }
 }
 

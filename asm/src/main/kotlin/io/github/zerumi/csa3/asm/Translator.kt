@@ -139,7 +139,7 @@ private fun translatePart2(
         }
     }
 
-    val firstAddress = labels["start"]!!
+    val firstAddress = labels["start"] ?: throw RuntimeException("Start label not available! labels: $labels")
     val program = Program(firstAddress, resultInstructions.toTypedArray())
 
     return program

@@ -1,3 +1,5 @@
 fun main() : Unit {
     print("Hello, world!");
+    
+    return Unit;
 }

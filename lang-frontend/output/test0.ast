@@ -30,7 +30,19 @@
                   "valType": "String"
                 }
               ]
-            }
+            },
+            {
+              "line": 4,
+              "column": 4,
+              "type": "RETURN",
+              "value":
+                {
+                  "line": 4,
+                  "column": 11,
+                  "type": "LITERAL",
+                  "value": "\"Hello, world!\"",
+                  "valType": "Unit"
+                }            }
           ]
         }
     }
