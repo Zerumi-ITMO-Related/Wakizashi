@@ -35,6 +35,8 @@ import kotlin.system.exitProcess
 // --export-ast <file.ast>
 // --export-sasm <file.sasm>
 // --export-machine <file.log>
+// Computer specific:
+// --with-input="1 2 3 10"
 
 class CompilerCLI : CliktCommand(name = "waki-compiler") {
     private val file: String by argument()
@@ -47,9 +49,10 @@ class CompilerCLI : CliktCommand(name = "waki-compiler") {
     }
 
     private val compilationStart by mutuallyExclusiveOptions(
-        option("--from-ast").flag().convert { CompilationPhase.AST },
-        option("--from-assembly", "--from-sasm").flag().convert { CompilationPhase.SASM },
-    ).single().default(CompilationPhase.WAK).help("Compilation pipeline", "Choose entry point of compiler")
+        option("--from-ast", help = "Start from AST").flag().convert { CompilationPhase.AST },
+        option("--from-assembly", "--from-sasm", help = "Start from Stack Assembly").flag()
+            .convert { CompilationPhase.SASM },
+    ).single().default(CompilationPhase.WAK).help("Compilation pipeline start", "Choose entry point of compiler")
 
     private val compilationFinish by mutuallyExclusiveOptions(
         option(
@@ -57,7 +60,7 @@ class CompilerCLI : CliktCommand(name = "waki-compiler") {
         ).convert { CompilationPhase.AST }, option(
             "--to-assembly", "--to-sasm", "-assembly", "-sasm", help = "Stop after generating SASM"
         ).convert { CompilationPhase.SASM }
-    ).single().default(CompilationPhase.COMP)
+    ).single().default(CompilationPhase.COMP).help("Compilation pipeline stop", "Choose leave point of compiler")
 
     private val showAst by option("--show-ast", help = "Print the AST after parsing").flag()
     private val showSasm by option("--show-assembly", "--show-sasm", help = "Print the generated stack assembly").flag()
@@ -72,9 +75,14 @@ class CompilerCLI : CliktCommand(name = "waki-compiler") {
         "--export-machine", help = "Write machine code to a file"
     ).file(canBeDir = false, mustBeWritable = false)
 
+    private val input: String? by option(
+        "--with-input", help = "Input some data to CPU I/O"
+    )
+
     override fun run() {
         val propFile =
-            this::class.java.getResourceAsStream("/compiler.properties") ?: terminate("No compiler.properties file found")
+            this::class.java.getResourceAsStream("/compiler.properties")
+                ?: terminate("No compiler.properties file found")
         val properties = Properties().apply { load(propFile) }
 
         val frontendBinary = properties.getProperty("frontend-binary") ?: terminate("frontend-binary not set")
@@ -88,6 +96,10 @@ class CompilerCLI : CliktCommand(name = "waki-compiler") {
         val programMachineFile = kotlin.io.path.createTempFile()
         val stdin = kotlin.io.path.createTempFile()
         val stdout = kotlin.io.path.createTempFile()
+
+        stdin.writer().use {
+            input?.let { it1 -> it.write(it1.replace(' ', '\n').plus('\n')) }
+        }
 
         fun getPrepareInputForPhase(compilationPhase: CompilationPhase): (String) -> String = when (compilationPhase) {
             CompilationPhase.WAK -> { output -> output }
@@ -162,7 +174,9 @@ class CompilerCLI : CliktCommand(name = "waki-compiler") {
         }
 
         fun runSequence(sequence: ActionSequence, compilationPhase: CompilationPhase): Result<ActionSequence> =
-            if (compilationPhase == compilationFinish && compilationPhase != CompilationPhase.COMP) Result.success(sequence)
+            if (compilationPhase == compilationFinish && compilationPhase != CompilationPhase.COMP) Result.success(
+                sequence
+            )
             else sequence.prepareNextInput { output ->
                 getCompilerActionParameters(compilationPhase, getPrepareInputForPhase(compilationPhase)(output))
             }.thenRun().fold(
@@ -190,7 +204,7 @@ class CompilerCLI : CliktCommand(name = "waki-compiler") {
 
 fun main(args: Array<String>) = CompilerCLI().main(args)
 
-fun terminate(message: String?) : Nothing {
+fun terminate(message: String?): Nothing {
     println(message ?: "Compilation error")
     exitProcess(1)
 }
