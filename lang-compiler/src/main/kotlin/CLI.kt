@@ -2,7 +2,6 @@ import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.core.main
 import com.github.ajalt.clikt.parameters.arguments.argument
 import com.github.ajalt.clikt.parameters.arguments.convert
-import com.github.ajalt.clikt.parameters.arguments.default
 import com.github.ajalt.clikt.parameters.groups.*
 import com.github.ajalt.clikt.parameters.options.convert
 import com.github.ajalt.clikt.parameters.options.flag
@@ -13,9 +12,10 @@ import java.util.Properties
 import kotlin.io.path.pathString
 import kotlin.io.path.readText
 import kotlin.io.path.writer
+import kotlin.system.exitProcess
 
 // Compiler infrastructure:
-// .wak -> .ast -> .sasm with stdlib -> .json -> stack-CPU
+// .wak -> .ast -> .sasm with stdlib -> machine_code.json -> stack-CPU
 
 // CLI:
 // java -jar waki-compiler.jar <input_file>
@@ -23,7 +23,6 @@ import kotlin.io.path.writer
 // Compilation phases:
 // --show-ast
 // --show-assembly (also --show-sasm)
-// --show-journal
 // Start compilation from:
 // --from-ast <file.ast>
 // --from-assembly <file.sasm>
@@ -35,12 +34,11 @@ import kotlin.io.path.writer
 // Export compilation artifacts:
 // --export-ast <file.ast>
 // --export-sasm <file.sasm>
-// --export-journal <file.log>
+// --export-machine <file.log>
 
 class CompilerCLI : CliktCommand(name = "waki-compiler") {
     private val file: String by argument()
         .file(mustExist = true, canBeDir = false).convert { it.readText() }
-        .default(File("/Users/zerumi/gitClone/Wakizashi/lang-frontend/input/test0.wak").readText())
 
     enum class CompilationPhase(val order: Int, val binaryProcessName: String) {
         WAK(0, "lang-frontend"), AST(1, "lang-backend"), SASM(2, "assembly-translator"), COMP(3, "stack-cpu"), ;
@@ -63,7 +61,6 @@ class CompilerCLI : CliktCommand(name = "waki-compiler") {
 
     private val showAst by option("--show-ast", help = "Print the AST after parsing").flag()
     private val showSasm by option("--show-assembly", "--show-sasm", help = "Print the generated stack assembly").flag()
-    private val showJournal by option("--show-journal", help = "Show semantic journal/log").flag()
 
     private val exportAst by option("--export-ast", help = "Write AST to a file").file(
         canBeDir = false, mustBeWritable = false
@@ -71,28 +68,28 @@ class CompilerCLI : CliktCommand(name = "waki-compiler") {
     private val exportSasm by option("--export-sasm", help = "Write stack assembly to a file").file(
         canBeDir = false, mustBeWritable = false
     )
-    private val exportJournal by option(
-        "--export-journal", help = "Write semantic log to a file"
+    private val exportMachine by option(
+        "--export-machine", help = "Write machine code to a file"
     ).file(canBeDir = false, mustBeWritable = false)
 
     override fun run() {
         val propFile =
-            this::class.java.getResourceAsStream("/compiler.properties") ?: error("No compiler.properties file found")
+            this::class.java.getResourceAsStream("/compiler.properties") ?: terminate("No compiler.properties file found")
         val properties = Properties().apply { load(propFile) }
 
-        val frontendBinary = properties.getProperty("frontend-binary") ?: error("frontend-binary not set")
-        val backendBinary = properties.getProperty("backend-binary") ?: error("backend-binary not set")
-        val assemblyBinary = properties.getProperty("assembly-binary") ?: error("assembly-binary not set")
-        val compBinary = properties.getProperty("comp-binary") ?: error("assembly-binary not set")
+        val frontendBinary = properties.getProperty("frontend-binary") ?: terminate("frontend-binary not set")
+        val backendBinary = properties.getProperty("backend-binary") ?: terminate("backend-binary not set")
+        val assemblyBinary = properties.getProperty("assembly-binary") ?: terminate("assembly-binary not set")
+        val compBinary = properties.getProperty("comp-binary") ?: terminate("assembly-binary not set")
 
-        val stdlib = properties.getProperty("stdlib-path") ?: error("unable to find standard library")
+        val stdlib = properties.getProperty("stdlib-path") ?: terminate("unable to find standard library")
 
         val programTextFile = kotlin.io.path.createTempFile()
         val programMachineFile = kotlin.io.path.createTempFile()
         val stdin = kotlin.io.path.createTempFile()
         val stdout = kotlin.io.path.createTempFile()
 
-        fun getInputProcessor(compilationPhase: CompilationPhase): (String) -> String = when (compilationPhase) {
+        fun getPrepareInputForPhase(compilationPhase: CompilationPhase): (String) -> String = when (compilationPhase) {
             CompilationPhase.WAK -> { output -> output }
             CompilationPhase.AST -> { it -> it }
             CompilationPhase.SASM -> { it ->
@@ -102,6 +99,7 @@ class CompilerCLI : CliktCommand(name = "waki-compiler") {
                 }
                 fullAsm
             }
+
             CompilationPhase.COMP -> { it -> it }
         }
 
@@ -137,9 +135,9 @@ class CompilerCLI : CliktCommand(name = "waki-compiler") {
                 startPhase = compilationStart,
                 currentPhase = CompilationPhase.SASM,
                 untilPhase = compilationFinish,
-                generateOutput = { _ -> "" },
+                generateOutput = { _ -> programMachineFile.readText() },
                 printOutput = false,
-                exportOutputFile = null,
+                exportOutputFile = exportMachine,
             )
 
             CompilationPhase.COMP -> ActionParameters(
@@ -158,17 +156,20 @@ class CompilerCLI : CliktCommand(name = "waki-compiler") {
                 currentPhase = CompilationPhase.COMP,
                 untilPhase = compilationFinish,
                 generateOutput = { _ -> stdout.readText() },
-                printOutput = showJournal,
-                exportOutputFile = exportJournal
+                printOutput = false,
+                exportOutputFile = null
             )
         }
 
         fun runSequence(sequence: ActionSequence, compilationPhase: CompilationPhase): Result<ActionSequence> =
-            sequence.prepareNextInput { output ->
-                getCompilerActionParameters(compilationPhase, getInputProcessor(compilationPhase)(output))
+            if (compilationPhase == compilationFinish && compilationPhase != CompilationPhase.COMP) Result.success(sequence)
+            else sequence.prepareNextInput { output ->
+                getCompilerActionParameters(compilationPhase, getPrepareInputForPhase(compilationPhase)(output))
             }.thenRun().fold(
                 onSuccess = {
-                    compilationPhase.next()?.let { nextPhase -> runSequence(it, nextPhase) } ?: Result.success(it)
+                    compilationPhase.next()?.let { nextPhase ->
+                        runSequence(it, nextPhase)
+                    } ?: Result.success(it)
                 },
                 onFailure = { Result.failure(it) }
             )
@@ -180,7 +181,7 @@ class CompilerCLI : CliktCommand(name = "waki-compiler") {
             onFailure = { Result.failure(it) }
         ).fold(
             onSuccess = { it.collectResult() },
-            onFailure = { error(it) }
+            onFailure = { terminate(it.message) }
         )
 
         println(result)
@@ -188,3 +189,8 @@ class CompilerCLI : CliktCommand(name = "waki-compiler") {
 }
 
 fun main(args: Array<String>) = CompilerCLI().main(args)
+
+fun terminate(message: String?) : Nothing {
+    println(message ?: "Compilation error")
+    exitProcess(1)
+}

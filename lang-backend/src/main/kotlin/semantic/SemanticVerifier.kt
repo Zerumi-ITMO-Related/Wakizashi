@@ -12,7 +12,7 @@ fun inferType(node: ASTNode, programSymbols: SemanticContext): Result<String> {
             inferType(node.right, programSymbols).fold(onSuccess = { typeRight ->
                 if (typeLeft != typeRight) return Result.failure(
                     CannotInferTypeException(
-                        TypeMismatchException(node.line, node.column)
+                        TypeMismatchException(node.line, node.column, typeLeft, typeRight)
                     )
                 )
                 else Result.success(typeLeft)
@@ -21,12 +21,12 @@ fun inferType(node: ASTNode, programSymbols: SemanticContext): Result<String> {
 
         is ASTNode.FunctionCallNode -> Result.success((programSymbols.functions.find { it.name == node.name }
             ?: return Result.failure(
-                CannotInferTypeException(MissedDeclarationException(node.line, node.column))
+                CannotInferTypeException(MissedDeclarationException(node.line, node.column, node.name))
             )).returnType)
 
         is ASTNode.IdentNode -> Result.success((programSymbols.variables.find { it.name == node.name }
             ?: return Result.failure(
-                CannotInferTypeException(MissedDeclarationException(node.line, node.column))
+                CannotInferTypeException(MissedDeclarationException(node.line, node.column, node.name))
             )).type)
 
         is ASTNode.LiteralNode -> Result.success(node.valType)

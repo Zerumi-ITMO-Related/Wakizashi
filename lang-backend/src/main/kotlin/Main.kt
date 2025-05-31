@@ -18,8 +18,12 @@ fun main() {
             exitProcess(1)
         })
     }, onFailure = {
-        System.err.println("Invalid AST: $it (cause by ${it.cause})")
-        if (it is ASTValidationException) System.err.println("On line ${it.line}, column: ${it.column + 1}")
+        System.err.println("Invalid AST: $it ${if (it.cause != null) "(cause by ${it.cause})" else ""}")
+        if (it is ASTValidationException) {
+            System.err.println("On line ${it.line}, column: ${it.column + 1}")
+            if (it.description != "")
+                System.err.println(it.description)
+        }
         exitProcess(1)
     })
 }

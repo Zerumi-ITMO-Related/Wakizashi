@@ -2,9 +2,7 @@ package semantic
 
 import ASTNode
 import ASTVisitor
-import error.TypeMismatchException
-import error.UnknownNodeInASTException
-import error.WrongReturnTypeException
+import error.*
 import visitAST
 
 fun checkASTSemantic(ast: ASTNode): Result<SemanticContext> = ASTVisitor(
@@ -49,7 +47,10 @@ fun visitFunctionDeclarationNode(
     )
     if (returnType.uppercase() != LiteralTypes.UNIT.name && returnType != blockReturnType)
         return Result.failure(WrongReturnTypeException(ast.line, ast.column))
-    astVisitor.visitAST(ast.body, state.withVariables(params).withFunction(FunctionDeclaration(name, params, returnType))).onFailure { return Result.failure(it) }
+    astVisitor.visitAST(
+        ast.body,
+        state.withVariables(params).withFunction(FunctionDeclaration(name, params, returnType))
+    ).onFailure { return Result.failure(it) }
     return Result.success(state.withFunction(FunctionDeclaration(name, params, returnType)))
 }
 
@@ -67,7 +68,14 @@ fun visitValueDeclarationNode(
     val valueType = inferType(ast, state).onFailure { return Result.failure(it) }
     val initType = inferType(ast.initializer, state).onFailure { return Result.failure(it) }
     astVisitor.visitAST(ast.initializer, state).onFailure { return Result.failure(it) }
-    return if (valueType != initType) Result.failure(TypeMismatchException(ast.line, ast.column))
+    return if (valueType != initType) Result.failure(
+        TypeMismatchException(
+            ast.line,
+            ast.column,
+            valueType.getOrNull()!!, // onFailure above
+            initType.getOrNull()!!, // onFailure above
+        )
+    )
     else Result.success(state.withVariable(VariableDeclaration(ident, ast.valType)))
 }
 
@@ -84,13 +92,34 @@ fun visitFunctionCallNode(
 ): Result<SemanticContext> {
     ast.args.fold(Result.success(state)) { ctx, child ->
         ctx.fold(onSuccess = { astVisitor.visitAST(child, it) }, onFailure = { ctx })
-    }
+    }.onFailure { return Result.failure(it) }
+    val callingFunction = state.functions.find { it.name == ast.name } ?: return Result.failure(
+        MissedDeclarationException(
+            ast.line,
+            ast.column,
+            ast.name,
+        )
+    )
+    if (ast.args.size != callingFunction.params.size) return Result.failure(
+        FunctionArgumentsCountMismatchException(
+            ast.line,
+            ast.column,
+            ast.name,
+            callingFunction.params.size,
+            ast.args.size,
+        )
+    )
     return Result.success(state)
 }
 
 fun visitIdentNode(
     ast: ASTNode.IdentNode, state: SemanticContext, astVisitor: ASTVisitor<SemanticContext>
 ): Result<SemanticContext> {
+    state.variables.find { it.name == ast.name } ?: return Result.failure(
+        MissedDeclarationException(
+            ast.line, ast.column, ast.name
+        )
+    )
     return Result.success(state)
 }
 
