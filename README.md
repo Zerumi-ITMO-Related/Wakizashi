@@ -2,9 +2,7 @@
 
 **Simple Kotlin-like language compiler for my own stack-machine CPU**  
 
-**Language docs available in Russian (Markdown): [here](/docs/wakizashi.md)**  
-_Also in .pdf:
-[here](/docs/wakizashi.pdf)_  
+**Language docs available in Russian (.pdf): [report](/docs/wakizashi.pdf)**  
 **Stack-machine full docs available in Russian (Markdown):
 [report](/docs/report.md)**  
 _Also in .pdf:
