@@ -1,3 +1,8 @@
+fun val_a_holder() : Unit {
+    val a: Int = 10;
+    return Unit;
+}
+
 fun main() : Unit {
-    print_number(what);
+    print_number(a);
 }
