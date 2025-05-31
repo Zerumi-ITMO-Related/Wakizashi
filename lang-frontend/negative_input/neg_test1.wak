@@ -1,0 +1,15 @@
+fun getString(str_num: Int) : String {
+    if (str_num == 1) {
+        return "Hello, world!";
+    } else {
+        return "Goodbye, world!";
+    }
+
+    return "";
+}
+
+fun main() : Unit {
+    print(getString("1"));
+
+    return Unit;
+}

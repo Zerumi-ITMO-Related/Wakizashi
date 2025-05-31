@@ -1,44 +1,243 @@
-# csa3-140324-asm-stack [![CodeFactor](https://www.codefactor.io/repository/github/zerumi/csa3-140324-asm-stack/badge)](https://www.codefactor.io/repository/github/zerumi/csa3-140324-asm-stack)
+# Wakizashi
 
-Computer system architecture laboratory work #3  
-Full variant --
-`asm | stack | neum | mc | tick
-| struct | stream | port | cstr | prob2 | -`
+**Simple Kotlin-like language compiler for my own stack-machine CPU**  
 
-(source: `asm | stack | neum | mc -> hw | tick -> instr
-| struct | stream | port | cstr | prob2 | cache`)
-
-Aimed for 30/40 points (variant made w/o complication).
-
-**Full report (in Russian) you may see here (Markdown):
+**Language docs available in Russian (.pdf): [report](/docs/wakizashi.pdf)**  
+**Stack-machine full docs available in Russian (Markdown):
 [report](/docs/report.md)**  
 _Also in .pdf:
 [here](/docs/P3206%20Афанасьев_Кирилл_Александрович%20ЛР3%20Отчёт.pdf)_
-
-Task details: <https://gitlab.se.ifmo.ru/computer-systems/csa-rolling/-/blob/master/lab3-task.md>
 
 ---
 
 ## What is this?
 
-This is a stack-machine CPU emulator!
+This is a compiler of a Kotlin-like programming language!
 
-* ISA & Assembly language translator
-* Microcoded CPU with Data & Return stacks [(full schema)](/docs/csa-3-proc-scheme-1.1.pdf)
-* Execution logs contains CPU state after every
-  microinstruction + Memory Dump after HALT execution
-* Written in pure Kotlin/JVM.
+* Generating AST by stream of tokens
+* Codegen for my own stack-machine emulator [(CPU schema)](/docs/csa-3-proc-scheme-1.1.pdf)
+* Implemented standard library
+* Verification of AST, robust error handling
+* Written in Flex/Bison & Pure Kotlin/JVM with functional style <3
 
 ## Table of Contents
 
-1. [Assembly Language](#assembly-language)
-2. [ISA](#isa)
-3. [Assembly Translator](#assembly-translator)
-4. [Computer Simulation](#computer-simulation)
-5. [Tests](#tests)
-6. [Usage Example](#usage-example)
-7. [Testing Source Example](#testing-source-example)
-8. [General stats](#general-stats)
+/ ! \ Warning. Below you may see bad english. "Takie dela =)"
+
+1. [Build requirements](#how-to-build)
+2. [Project structure](#project-structure)
+3. [Wakizashi language](#wakizashi-language)
+3. [Assembly Language](#assembly-language)
+4. [ISA](#isa)
+5. [Assembly Translator](#assembly-translator)
+6. [Computer Simulation](#computer-simulation)
+7. [Tests](#tests)
+8. [Usage Example](#usage-example)
+9. [Testing Source Example](#testing-source-example)
+10. [General stats](#general-stats)
+
+## How to build
+
+For build this project, you will need:
+
+- Kotlin 2.0.10
+- Java 17
+- Gradle 8.4
+
+for build Stack-machine, CLI & backend, and
+
+- Make
+- Flex/Bison
+- gcc
+
+for build compiler frontend respectively
+
+**There is a ready gradle task for you!**
+
+```shell
+./gradlew dist
+```
+
+Project should be assembled and packaged at `./build` directory. I tested it only on macOS.
+
+Ready-made `mach-o` frontend and `.jar` of other modules are available at
+[GitHub releases](https://github.com/Zerumi-ITMO-Related/Wakizashi/releases)
+
+## Project structure
+
+Repository contains 6 general modules:
+
+- `lang-frontend`: Lexical analysis & AST building
+- `lang-backend`: AST verification & Codegen
+- `lang-compiler`: CLI for backend, frontend, assembly translator & CPU emulator
+- `comp`, `asm`, `isa`: Stack-machine related stuff: Emulator, assembly-translator and ISA
+
+Architecture of the compiler available below:
+
+```
+            Wakizashi                                                        
+           ┌────────────────────────────────────────────────┐                
+           │                                                │                
+           │                                                │                
+           │                                                │                
+           │    ┌────────────┐           ┌─────────────┐    │                
+           │    │            │           │             │    │                
+ source.wak│    │            │ ast.json  │             │    │  gen.sasm      
+    ───────│───►│  frontend  ├──────────►│   backend   ├────├───────────────┐
+           │    │            │           │             │    │               │
+           │    │            │           │             │    │               │
+           │    └────────────┘           └─────────────┘    │               │
+           │                                                │               │
+           │                                                │               │
+           │                                                │               │
+           └────────────────────────────────────────────────┘               │
+                                                                            │
+            csa3-140324-asm-stack                                           │
+           ┌────────────────────────────────────────────────────────────┐   │
+           │                                                            │   │
+           │                                                            │   │
+  output   │    ┌──────────────────┐                                    │   │
+◄──────────│────┤                  │                    ┌────────────┐  │   │
+           │    │                  │                    │            │  │   │
+  journal  │    │   stack-machine  │ machine_code.json  │  assembly  │  │   │
+◄──────────│────┤                  │◄───────────────────┤            │◄─┼───┘
+           │    │       CPU        │                    │ translator │  │    
+  memory   │    │                  │                    │            │  │    
+◄──────────│────┤                  │                    └────────────┘  │    
+           │    └──────────────────┘                                    │    
+           │                                                            │    
+           │                                                            │    
+           └────────────────────────────────────────────────────────────┘    
+```
+
+## CLI
+
+The CLI (`lang-compiler` module) manages all the compilation pipeline, showed above. 
+It provides simple access to execute Wakizashi source code directly on Stack CPU.
+
+Usage: `waki [-h | --help] | [--with-input="String1 String2..."] [--show-ast] [--show-sasm] [--export-ast <filename>] [--export-sasm <filename>] 
+[--export-machine <filename>] [--to-ast | --to-sasm] [--from-ast | --from-sasm] <input_file>`
+
+- `[--show-*]` - stands for the ability to print the output of * stage of compilation
+- `[--export-* <filename>]` - the same as above, but exports in file. Note: machine code
+can only be exported in file.
+- `[--from-*]`..`[--to-*]` - start and stop the pipeline at specific stages. By default,
+pipeline goes from .wak file to CPU output. But you can control it. It affects `input_file`:
+it should be valid for start stage of compilation.
+- `[--with-input]` - provide some input to CPU. Separate different strings with space.
+
+Example:
+
+```shell
+./waki /Users/zerumi/gitClone/Wakizashi/lang-frontend/input/test0.wak 
+Hello, world!
+
+./waki --from-ast /Users/zerumi/gitClone/Wakizashi/lang-frontend/output/test0.ast
+Hello, world!
+
+./waki --to-sasm /Users/zerumi/gitClone/Wakizashi/lang-frontend/input/test0.wak
+lit-0:
+word lit-0-reference
+lit-0-reference:
+word 72
+word 101
+word 108
+word 108
+word 111
+word 44
+word 32
+word 119
+word 111
+word 114
+word 108
+word 100
+word 33
+word 0
+lit-1:
+word 0
+print:
+lit print_str
+jump
+main:
+lit lit-0
+load
+lit print
+call
+lit lit-0
+load
+ret
+start:
+lit main
+call
+halt
+```
+
+## Wakizashi Language
+
+Supported constructions:
+
+- Variable declaraion
+- First-class functions declaration & recursion
+- `if`/`else` block (`else` is mandatory)
+- `+`, `-`, `*`, `/`, `&&`, `||`, `==`, `!=`, `>`, `<` binary operations on integers
+- Supported types: `Int`, `String`, `Unit`
+- There is a standard library, [fast access here](lang-frontend/input/stdlib.sasm). Supports assembly interoperability.
+
+Wakizashi programs should be compiled by the Kotlin compiler (but not vice versa =) )
+
+Below is example of Wakizashi program:
+
+```kotlin
+fun is_equal(a: Int, b: Int) : Int {
+    return a == b;
+}
+
+fun main() : Unit {
+    val a1: Int = 40 - 20;
+    val b1: Int = 20;
+    val c: Int = is_equal(a1, b1);
+    if (c && (a1 > 10)) {
+        print("Equals and a1 more than 10");
+    } else {
+        print("Not Equals or a1 less/equal than 10");
+    }
+    return Unit;
+}
+```
+
+It outputs:
+
+```shell
+./waki /Users/zerumi/gitClone/Wakizashi/lang-frontend/input/test1.wak
+Equals and a1 more than 10
+```
+
+Supported AST verification:
+
+- Type inferring & Type mismatch detection
+- Function call arguments count checker
+- Identifier declaration checker
+
+Example of wrong Wakizashi program:
+
+```kotlin
+fun main() : Unit {
+    val a: Int = "10";
+    print(a);
+
+    return Unit;
+}
+```
+
+And the error is:
+
+```shell
+./waki /Users/zerumi/gitClone/Wakizashi/lang-frontend/negative_input/neg_test0.wak
+Invalid AST: error.TypeMismatchException 
+On line 2, column: 5
+Expected Int type, but got String
+Process lang-backend exited with code 1
+```
 
 ## Assembly language
 
@@ -405,4 +604,5 @@ golden_test.py::test_translator_and_machine[golden/hello.yml] PASSED     [100%]
 ```
 
 v.1.0 by Zerumi, 22/04/2024  
-v.1.1 by Zerumi, 29/04/2024
+v.1.1 by Zerumi, 29/04/2024  
+v.2.0 by Zerumi, 31/05/2025

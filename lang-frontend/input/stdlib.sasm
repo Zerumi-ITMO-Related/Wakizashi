@@ -1,0 +1,448 @@
+; ##############
+; I/O section
+; ##############
+
+; defined port address
+port:
+                word 1          ; standard port
+
+; read char from defined port i/o address
+; consumed operand: nothing
+; return: symbol which read from i/o
+; usage: lit read_char + call
+read_char:
+                lit port        ; port_addr
+                load            ; port
+                in              ; in_symbol
+                ret             ; in_symbol
+
+; read string from defined port i/o address
+; consumed operand: zeroed_buffer_addr
+; returns nothing, but buffer will contain string which read from i/o
+; usage: lit arg + lit read_string + call
+readln_shared_buf:
+                buf 75
+readln:
+                lit 75          ; buf_len
+                lit readln_shared_buf   ; buf_len readln_shared_buf
+clear_buf:
+                dup             ; buf_len readln_shared_buf readln_shared_buf
+                lit 0           ; buf_len readln_shared_buf readln_shared_buf 0
+                swap            ; buf_len readln_shared_buf 0 readln_shared_buf
+                store           ; buf_len readln_shared_buf
+                inc             ; buf_len readln_shared_buf + 1 -> readln_shared_buf
+                swap            ; readln_shared_buf buf_len
+                dec             ; readln_shared_buf buf_len - 1 -> buf_len
+                dup             ; readln_shared_buf buf_len buf_len
+                lit buf_cleared ; readln_shared_buf buf_len buf_len buf_cleared
+                swap            ; readln_shared_buf buf_len buf_cleared buf_len
+                jz              ; readln_shared_buf buf_len
+                swap            ; buf_len readln_shared_buf
+                lit clear_buf   ; buf_len readln_shared_buf clear_buf
+                jump            ; buf_len readln_shared_buf
+buf_cleared:
+                drop            ; readln_shared_buf
+                drop            ;
+                lit readln_shared_buf ; readln_shared_buf
+                lit read_string ; readln_shared_buf read_string
+                jump            ; readln_shared_buf
+read_string:
+                lit stop_read   ; str_addr stop_read
+                lit read_char   ; str_addr stop_read read_char
+                call            ; str_addr stop_read input
+                over            ; str_addr input stop_read input
+                jz              ; str_addr input
+                swap            ; input str_addr
+                over            ; str_addr input str_addr
+                dup             ; [...] str_addr -> str_addr
+                inc             ; str_addr + 1
+                load            ; zero/symbol
+                lit continue    ; zero/symbol continue
+                swap            ; continue zero/symbol
+                jz              ; str_addr input str_addr
+                drop            ; str_addr input
+                drop            ; str_addr
+                lit 0           ; str_addr 0
+                lit stop_read   ; because current symbol was nul-terminating
+                jump            ;
+continue:
+                store           ; str_addr
+                inc             ; str_addr + 1 -> str_addr
+                lit read_string ; str_addr read_string
+                jump            ; str_addr
+stop_read:
+                swap            ; input str_addr
+                store           ;
+                lit readln_shared_buf   ; readln_shared_buf
+                ret             ;
+
+; strlen function
+; consumed operand: str_addr
+; return: length of str given by str_addr
+; usage: lit arg + lit strlen + call
+strlen_temp:
+                word 0                  ; strlen_result
+strlen:
+                lit 0                   ; str_addr 0
+                lit strlen_temp         ; str_addr 0 strlen_temp
+                store                   ; str_addr
+strlen_impl:
+                dup                     ; str_addr str_addr
+                load                    ; str_addr symbol
+                lit strlen_exit         ; str_addr symbol strlen_exit
+                swap                    ; str_addr strlen_exit symbol
+                jz                      ; str_addr
+                lit strlen_temp         ; str_addr strlen_temp
+                dup                     ; str_addr strlen_temp strlen_temp
+                load                    ; str_addr strlen_temp strlen_result
+                inc                     ; str_addr strlen_temp strlen_result + 1
+                swap                    ; str_addr strlen_result + 1 strlen_temp
+                store                   ; str_addr
+                inc                     ; str_addr + 1 -> str_addr
+                lit strlen_impl         ; str_addr strlen_impl
+                jump                    ; str_addr
+strlen_exit:
+                drop                    ; <empty>
+                lit strlen_temp         ; strlen_temp
+                load                    ; strlen_result
+                ret                     ; strlen_result
+
+; parse single digit from char
+; consumed operand: symbol
+; return: digit
+; usage: lit arg + lit parse_digit + call
+parse_digit:
+                lit 48                  ; symbol 48
+                sub                     ; digit
+                ret                     ; digit
+
+; parse uint function
+; consumed operand: str_addr
+; return: parsed number
+; usage: lit arg + lit parse_uint + call
+number_length:
+                word 0
+parsed_number:
+                word 0
+number_multiplier:
+                word 1
+parse_uint:
+                lit 0                   ; str_addr 0
+                lit parsed_number       ; str_addr 0 parsed_number
+                store                   ; str_addr
+                lit 1                   ; str_addr 1
+                lit number_multiplier   ; str_addr 1 number_multiplier
+                store                   ; str_addr
+parse_uint_impl:
+                dup                     ; str_addr str_addr
+                dup                     ; str_addr str_addr str_addr
+                lit strlen              ; str_addr str_addr str_addr strlen
+                call                    ; str_addr str_addr strlen_res
+                dup                     ; str_addr str_addr strlen_res strlen_res
+                lit number_length       ; str_addr str_addr strlen_res strlen_res number_length
+                store                   ; str_addr str_addr strlen_res
+                add                     ; str_addr str_addr_plus_length -> m_str
+parse_uint_loop:
+                dec                     ; str_addr m_str - 1 -> m_str
+                dup                     ; str_addr m_str m_str
+                load                    ; str_addr m_str digit_s
+                lit parse_digit         ; [..] digit_s parse_digit
+                call                    ; [..] digit
+                lit number_multiplier   ; digit number_multiplier_addr
+                load                    ; digit number_multiplier
+                over                    ; number_multiplier digit number_multiplier
+                mul                     ; number_multiplier digit * number_multiplier -> num_to_add
+                lit parsed_number       ; [..] num_to_add parsed_number_addr
+                load                    ; num_to_add parsed_number
+                add                     ; parsed_number + num_to_add -> parsed_number
+                lit parsed_number       ; parsed_number parsed_number_addr
+                store                   ; number_multiplier
+                lit 10                  ; number_multiplier 10
+                mul                     ; number_multiplier * 10 -> number_multiplier
+                lit number_multiplier   ; number_multiplier number_multiplier_addr
+                store                   ; str_addr m_str
+                swap                    ; m_str str_addr
+                over                    ; str_addr m_str str_addr
+                swap                    ; str_addr str_addr m_str
+                over                    ; str_addr m_str str_addr m_str
+                sub                     ; str_addr m_str 0/non zero
+                lit parse_uint_exit     ; [..] 0/non zero parse_int_exit
+                swap                    ; parse_int_exit 0/non zero
+                jz                      ; str_addr m_str
+                lit parse_uint_loop     ; str_addr m_str parse_int_loop
+                jump                    ; str_addr m_str
+parse_uint_exit:
+                drop                    ; str_addr
+                drop                    ; <empty>
+                lit parsed_number       ; parsed_number
+                load                    ; result
+                ret                     ; result
+
+; parse int function
+; consumed operand: str_addr
+; return: parsed number
+; usage: lit arg + lit parse_int + call
+parse_int:
+                dup                     ; str_addr str_addr
+                load                    ; str_addr minus_or_not
+                lit 45                  ; str_addr minus_or_not 45
+                sub                     ; str_addr 0-negate/non-0-non-negate
+                lit parse_int_negate    ; str_addr negate/non-negate parse_int_negate
+                swap                    ; str_addr parse_int_negate negate/non-negate
+                jz                      ; str_addr
+                lit parse_uint          ; str_addr parse_uint
+                call                    ; number
+                ret                     ; number
+parse_int_negate:
+                inc                     ; str_addr w/o -
+                lit parse_uint          ; str_addr parse_uint
+                call                    ; number
+                lit -1                  ; number -1
+                mul                     ; negate_number
+                ret                     ; negate_number
+
+; prints char to standard port
+; consumed operand: symbol
+; returns nothing
+; usage: lit char + lit print_char + call
+print_char:
+                lit port        ; symbol port_addr
+                load            ; symbol port
+                out             ;
+                ret             ;
+
+; prints char array to standard port
+; consumed operand: str_address
+; returns nothing
+; usage: lit str_address + lit print_str + call
+print_str:
+                dup             ; str_addr str_addr
+                load            ; str_addr symbol
+                dup             ; str_addr symbol symbol
+                lit ps_ret      ; str_addr symbol symbol ps_ret
+                swap            ; str_addr symbol ps_ret symbol
+                jz              ; str_addr symbol
+                lit print_char  ; str_addr symbol
+                call            ; str_addr
+                inc             ; str_addr + 1 -> str_addr
+                lit print_str   ; str_addr print_str
+                jump            ; str_addr
+ps_ret:
+                drop            ; str_addr (symbol)
+                drop            ; (str_addr)
+                ret             ;
+
+; print digit to port i/o
+; consumed operand: digit
+; returns nothing
+; usage: lit arg + lit print_digit + call
+print_digit:
+                lit 48              ; arg 48
+                add                 ; arg -> char
+                lit port            ; char port_addr
+                load                ; char port
+                out                 ;
+                ret                 ;
+
+; print number to port i/o
+; consumed operand: number
+; returns nothing
+; usage: lit arg + lit print_number + call
+print_number:
+                lit -1              ; num -1
+                swap                ; -1 num
+                dup                 ; -1 num num
+                lit negate          ; -1 num num negate
+                swap                ; -1 num negate num
+                jn                  ; -1 num
+                lit loop1           ; -1 num loop1
+                jump                ; -1 num
+negate:
+                lit 45              ; [...] 45
+                lit port            ; [...] 45 port_a
+                load                ; [...] 45 port
+                out                 ; [...]
+                lit -1              ; 0 num -1
+                mul                 ; 0 -num -> num
+loop1:
+                dup                 ; 0 num num
+                lit 10              ; 0 num num 10
+                mod                 ; 0 num digit
+                swap                ; 0 digit num
+                lit 10              ; 0 digit num 10
+                div                 ; 0 digit num/10 -> num
+                over                ; 0 num digit num
+                lit loop1exit       ; [...] num loop2
+                swap                ; [...] loop2 num
+                jz                  ; [...] num digit
+                swap
+                lit loop1           ; [...] num loop1
+                jump                ; [...] num
+loop1exit:
+                swap                ; [...] 0 digit
+                drop                ; [...] digit
+loop2:
+                dup                 ; digit digit
+                lit break           ; digit digit break
+                swap                ; digit break digit
+                jn                  ; digit
+                lit print_digit     ; digit print_digit
+                call                ; digit
+                lit loop2           ; loop2
+                jump                ;
+break:
+                drop                ;
+                ret                 ;
+
+; adds 2 ints by reference
+; consumed operand: num1_link num2_link
+; returns link to num1 + num2
+; usage: lit num1_link + lit num2_link + lit add + call
+add:
+                add                 ; result
+                ret                 ; result_link 
+
+; subtracts 2 ints by reference
+; consumed operand: num1_link num2_link
+; returns link to num2 - num1
+; usage: lit num1_link + lit num2_link + lit add + call
+sub:
+                sub                 ; result
+                ret                 ; result_link 
+
+; multiply 2 ints by reference
+; consumed operand: num1_link num2_link
+; returns link to num1 * num2
+; usage: lit num1_link + lit num2_link + lit add + call
+mul:
+                mul                 ; result
+                ret                 ; result_link 
+
+; divides 2 ints by reference
+; consumed operand: num1_link num2_link
+; returns link to num2 / num1
+; usage: lit num1_link + lit num2_link + lit add + call
+div:
+                div                 ; result
+                ret                 ; result_link 
+
+; perfoms equality check of 2 ints by reference
+; consumed operand: num1_link num2_link
+; returns link to 1/0 - true or false
+; usage: lit num1_link + lit num2_link + lit add + call
+equals:
+                sub                 ; 0/not0
+                lit equals_pass     ; 0/not0 equals_pass
+                swap                ; equals_pass 0/not0
+                jz                  ; <empty>
+                lit 0               ; 0
+                lit equals_set_res  ; 0 equals_set_res
+                jump                ; 0
+equals_pass:
+                lit 1               ; 1
+equals_set_res:
+                ret                 ; 0/1 
+
+; perfoms reverse equality check of 2 ints by reference
+; consumed operand: num1_link num2_link
+; returns link to 1/0 - true or false
+; usage: lit num1_link + lit num2_link + lit add + call
+not_equals:
+                sub                 ; 0/not0
+                lit not_equals_pass ; 0 not_equals_pass
+                swap                ; equals_pass 0/not0
+                jz                  ; <empty>
+                lit 1               ; 1
+                lit not_eq_set_res  ; 1 not_eq_set_res
+                jump                ; 1
+not_equals_pass:
+                lit 0               ; 0
+not_eq_set_res:
+                ret                 ; 0/1 
+
+; perfoms less check of 2 ints by reference
+; consumed operand: num1_link num2_link
+; returns link to 1/0 - true or false
+; usage: lit num1_link + lit num2_link + lit add + call
+less:
+                sub                 ; num1 - num2
+                lit result_less_pass; num1 - num2 result_less_pass
+                swap                ; result_less_pass num1 - num2
+                jn                  ; num1 - num2 
+                lit 0               ; 0
+                lit result_less_ret ; 0 result_less_ret
+                jump                ; 0
+result_less_pass:
+                lit 1               ; 1
+result_less_ret:
+                ret                 ; 0/1 
+
+; perfoms more check of 2 ints by reference
+; consumed operand: num1_link num2_link
+; returns link to 1/0 - true or false
+; usage: lit num1_link + lit num2_link + lit add + call
+result_more:
+                word 0
+more:                               ; num1 > num2 -> num2 - num1 < 0
+                sub                 ; num1 - num2
+                lit result_more_pass; num1 - num2 result_more_pass
+                swap                ; result_less_pass num1 - num2
+                jn                  ; num1 - num2
+                lit 1               ; 1
+                lit result_more_ret ; 1 result_more_ret
+                jump                ; 1
+result_more_pass:
+                lit 0               ; 0
+result_more_ret:
+                ret                 ; 0/1 
+
+; perfoms logical and of 2 ints by reference
+; consumed operand: num1_link num2_link
+; returns link to 1/0 - true or false
+; usage: lit num1_link + lit num2_link + lit add + call
+and:
+                and                 ; result
+                ret                 ; result_link 
+
+; perfoms logical or of 2 ints by reference
+; consumed operand: num1_link num2_link
+; returns link to 1/0 - true or false
+; usage: lit num1_link + lit num2_link + lit add + call
+or:
+                or                  ; result
+                ret                 ; result_link 
+
+; ##############
+; Stack
+; ##############
+
+stack_pointer:
+                word stack
+
+stack:
+                buf 70
+
+push:
+                lit stack_pointer   ; stack_pointer_ref value
+                load                ; stack_pointer value
+                over                ; stack_pointer value stack_pointer
+                store               ; stack_pointer
+                inc                 ; stack_pointer + 1 -> stack_pointer value
+                lit stack_pointer   ; stack_pointer_ref stack_pointer
+                store               ; <empty>
+                ret                 ; <empty>
+
+pop:
+                lit stack_pointer   ; stack_pointer_ref
+                load                ; stack_pointer
+                dec                 ; stack_pointer - 1 -> stack_pointer
+                dup                 ; stack_pointer stack_pointer
+                lit stack_pointer   ; stack_pointer_ref stack_pointer stack_pointer
+                store               ; stack_pointer
+                load                ; value
+                ret                 ; value
+
+; ##############
+; User section
+; ##############
+

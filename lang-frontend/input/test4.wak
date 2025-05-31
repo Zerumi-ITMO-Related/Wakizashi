@@ -1,0 +1,47 @@
+fun binarySearch(left: Int, right: Int, a: Int, b: Int, c: Int, d: Int): Int {
+    if ((right - left) < 2) {
+        return left;
+    } else {
+        val mid : Int = (left + right) / 2;
+        val taxiPrice : Int = c - (d * mid);
+        val petyaPrice : Int = a + (b * mid);
+
+        if (taxiPrice > petyaPrice) {
+            return binarySearch(mid, right, a, b, c, d);
+        } else {
+            return binarySearch(left, mid, a, b, c, d);
+        }
+    }
+    return 0;
+}
+
+fun main() : Unit {
+    val a0: Int = parse_int(readln());
+    val b0: Int = parse_int(readln());
+    val c0: Int = parse_int(readln());
+    val d0: Int = parse_int(readln());
+
+    val left_1: Int = binarySearch(0, 10000, a0, b0, c0, d0);
+    val right_1: Int = left_1 + 1;
+
+    val lp: Int = a0 + (b0 * left_1);
+    val lt: Int = c0 - (d0 * left_1);
+    val rp: Int = a0 + (b0 * right_1);
+    val rt: Int = c0 - (d0 * right_1);
+    
+    if (rp > lt) {
+        if (lp > lt) {
+            print_number(lp);
+        } else {
+            print_number(lt);
+        }
+    } else {
+        if (rp > rt) {
+            print_number(rp);
+        } else {
+            print_number(rt);
+        }
+    }
+
+    return Unit;
+}

@@ -1,0 +1,8 @@
+fun main() : Unit {
+    val a: Int = parse_int(readln());
+    val b: Int = parse_int(readln());
+    
+    print_number(a + b);
+
+    return Unit;
+}

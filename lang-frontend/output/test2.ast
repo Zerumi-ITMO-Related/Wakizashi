@@ -1,0 +1,186 @@
+{
+  "line": 1,
+  "column": 0,
+  "type": "PROGRAM",
+  "children": [
+    {
+      "line": 1,
+      "column": 0,
+      "type": "FUN_DECLARATION",
+      "name": "factorial",
+      "returnType": "Int",
+      "params": [
+        { "name": "n", "paramType": "Int" }      ],
+      "body":
+        {
+          "line": 1,
+          "column": 29,
+          "type": "BLOCK",
+          "children": [
+            {
+              "line": 2,
+              "column": 4,
+              "type": "IF",
+              "condition":
+                {
+                  "line": 2,
+                  "column": 10,
+                  "type": "BIN_OP",
+                  "op": "==",
+                  "left":
+                    {
+                      "line": 2,
+                      "column": 8,
+                      "type": "IDENT",
+                      "name": "n"
+                    },
+                  "right":
+                    {
+                      "line": 2,
+                      "column": 13,
+                      "type": "LITERAL",
+                      "value": "1",
+                      "valType": "Int"
+                    }                },
+              "then":
+                {
+                  "line": 2,
+                  "column": 16,
+                  "type": "BLOCK",
+                  "children": [
+                    {
+                      "line": 3,
+                      "column": 8,
+                      "type": "RETURN",
+                      "value":
+                        {
+                          "line": 3,
+                          "column": 15,
+                          "type": "LITERAL",
+                          "value": "1",
+                          "valType": "Int"
+                        }                    }
+                  ]
+                },
+              "else":
+                {
+                  "line": 4,
+                  "column": 11,
+                  "type": "BLOCK",
+                  "children": [
+                    {
+                      "line": 5,
+                      "column": 8,
+                      "type": "RETURN",
+                      "value":
+                        {
+                          "line": 5,
+                          "column": 17,
+                          "type": "BIN_OP",
+                          "op": "*",
+                          "left":
+                            {
+                              "line": 5,
+                              "column": 15,
+                              "type": "IDENT",
+                              "name": "n"
+                            },
+                          "right":
+                            {
+                              "line": 5,
+                              "column": 19,
+                              "type": "FUN_CALL",
+                              "name": "factorial",
+                              "args": [
+                                {
+                                  "line": 5,
+                                  "column": 31,
+                                  "type": "BIN_OP",
+                                  "op": "-",
+                                  "left":
+                                    {
+                                      "line": 5,
+                                      "column": 29,
+                                      "type": "IDENT",
+                                      "name": "n"
+                                    },
+                                  "right":
+                                    {
+                                      "line": 5,
+                                      "column": 33,
+                                      "type": "LITERAL",
+                                      "value": "1",
+                                      "valType": "Int"
+                                    }                                }
+                              ]
+                            }                        }                    }
+                  ]
+                }            },
+            {
+              "line": 8,
+              "column": 4,
+              "type": "RETURN",
+              "value":
+                {
+                  "line": 8,
+                  "column": 11,
+                  "type": "LITERAL",
+                  "value": "0",
+                  "valType": "Int"
+                }            }
+          ]
+        }
+    },
+    {
+      "line": 11,
+      "column": 0,
+      "type": "FUN_DECLARATION",
+      "name": "main",
+      "returnType": "Unit",
+      "params": [      ],
+      "body":
+        {
+          "line": 11,
+          "column": 18,
+          "type": "BLOCK",
+          "children": [
+            {
+              "line": 12,
+              "column": 4,
+              "type": "FUN_CALL",
+              "name": "print_number",
+              "args": [
+                {
+                  "line": 12,
+                  "column": 17,
+                  "type": "FUN_CALL",
+                  "name": "factorial",
+                  "args": [
+                    {
+                      "line": 12,
+                      "column": 27,
+                      "type": "LITERAL",
+                      "value": "10",
+                      "valType": "Int"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "line": 13,
+              "column": 4,
+              "type": "RETURN",
+              "value":
+                {
+                  "line": 13,
+                  "column": 11,
+                  "type": "LITERAL",
+                  "value": "10",
+                  "valType": "Unit"
+                }            }
+          ]
+        }
+    }
+  ]
+}

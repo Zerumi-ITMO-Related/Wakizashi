@@ -1,0 +1,15 @@
+fun is_equal(a: Int, b: Int) : Int {
+    return a == b;
+}
+
+fun main() : Unit {
+    val a1: Int = 40 - 20;
+    val b1: Int = 20;
+    val c: Int = is_equal(a1, b1);
+    if (c && (a1 > 10)) {
+        print("Equals and a1 more than 10");
+    } else {
+        print("Not Equals or a1 less/equal than 10");
+    }
+    return Unit;
+}

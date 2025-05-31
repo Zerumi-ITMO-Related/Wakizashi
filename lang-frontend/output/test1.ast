@@ -1,0 +1,233 @@
+{
+  "line": 1,
+  "column": 0,
+  "type": "PROGRAM",
+  "children": [
+    {
+      "line": 1,
+      "column": 0,
+      "type": "FUN_DECLARATION",
+      "name": "is_equal",
+      "returnType": "Int",
+      "params": [
+        { "name": "a", "paramType": "Int" },
+        { "name": "b", "paramType": "Int" }      ],
+      "body":
+        {
+          "line": 1,
+          "column": 35,
+          "type": "BLOCK",
+          "children": [
+            {
+              "line": 2,
+              "column": 4,
+              "type": "RETURN",
+              "value":
+                {
+                  "line": 2,
+                  "column": 13,
+                  "type": "BIN_OP",
+                  "op": "==",
+                  "left":
+                    {
+                      "line": 2,
+                      "column": 11,
+                      "type": "IDENT",
+                      "name": "a"
+                    },
+                  "right":
+                    {
+                      "line": 2,
+                      "column": 16,
+                      "type": "IDENT",
+                      "name": "b"
+                    }                }            }
+          ]
+        }
+    },
+    {
+      "line": 5,
+      "column": 0,
+      "type": "FUN_DECLARATION",
+      "name": "main",
+      "returnType": "Unit",
+      "params": [      ],
+      "body":
+        {
+          "line": 5,
+          "column": 18,
+          "type": "BLOCK",
+          "children": [
+            {
+              "line": 6,
+              "column": 4,
+              "type": "VAL_DECLARATION",
+              "name": "a1",
+              "valType": "Int",
+              "initializer":
+                {
+                  "line": 6,
+                  "column": 21,
+                  "type": "BIN_OP",
+                  "op": "-",
+                  "left":
+                    {
+                      "line": 6,
+                      "column": 18,
+                      "type": "LITERAL",
+                      "value": "40",
+                      "valType": "Int"
+                    },
+                  "right":
+                    {
+                      "line": 6,
+                      "column": 23,
+                      "type": "LITERAL",
+                      "value": "20",
+                      "valType": "Int"
+                    }                }
+            },
+            {
+              "line": 7,
+              "column": 4,
+              "type": "VAL_DECLARATION",
+              "name": "b1",
+              "valType": "Int",
+              "initializer":
+                {
+                  "line": 7,
+                  "column": 18,
+                  "type": "LITERAL",
+                  "value": "20",
+                  "valType": "Int"
+                }
+            },
+            {
+              "line": 8,
+              "column": 4,
+              "type": "VAL_DECLARATION",
+              "name": "c",
+              "valType": "Int",
+              "initializer":
+                {
+                  "line": 8,
+                  "column": 17,
+                  "type": "FUN_CALL",
+                  "name": "is_equal",
+                  "args": [
+                    {
+                      "line": 8,
+                      "column": 26,
+                      "type": "IDENT",
+                      "name": "a1"
+                    },
+                    {
+                      "line": 8,
+                      "column": 30,
+                      "type": "IDENT",
+                      "name": "b1"
+                    }
+                  ]
+                }
+            },
+            {
+              "line": 9,
+              "column": 4,
+              "type": "IF",
+              "condition":
+                {
+                  "line": 9,
+                  "column": 10,
+                  "type": "BIN_OP",
+                  "op": "&&",
+                  "left":
+                    {
+                      "line": 9,
+                      "column": 8,
+                      "type": "IDENT",
+                      "name": "c"
+                    },
+                  "right":
+                    {
+                      "line": 9,
+                      "column": 17,
+                      "type": "BIN_OP",
+                      "op": ">",
+                      "left":
+                        {
+                          "line": 9,
+                          "column": 14,
+                          "type": "IDENT",
+                          "name": "a1"
+                        },
+                      "right":
+                        {
+                          "line": 9,
+                          "column": 19,
+                          "type": "LITERAL",
+                          "value": "10",
+                          "valType": "Int"
+                        }                    }                },
+              "then":
+                {
+                  "line": 9,
+                  "column": 24,
+                  "type": "BLOCK",
+                  "children": [
+                    {
+                      "line": 10,
+                      "column": 8,
+                      "type": "FUN_CALL",
+                      "name": "print",
+                      "args": [
+                        {
+                          "line": 10,
+                          "column": 14,
+                          "type": "LITERAL",
+                          "value": "\"Equals and a1 more than 10\"",
+                          "valType": "String"
+                        }
+                      ]
+                    }
+                  ]
+                },
+              "else":
+                {
+                  "line": 11,
+                  "column": 11,
+                  "type": "BLOCK",
+                  "children": [
+                    {
+                      "line": 12,
+                      "column": 8,
+                      "type": "FUN_CALL",
+                      "name": "print",
+                      "args": [
+                        {
+                          "line": 12,
+                          "column": 14,
+                          "type": "LITERAL",
+                          "value": "\"Not Equals or a1 less/equal than 10\"",
+                          "valType": "String"
+                        }
+                      ]
+                    }
+                  ]
+                }            },
+            {
+              "line": 14,
+              "column": 4,
+              "type": "RETURN",
+              "value":
+                {
+                  "line": 14,
+                  "column": 11,
+                  "type": "LITERAL",
+                  "value": "\"Not Equals or a1 less/equal than 10\"",
+                  "valType": "Unit"
+                }            }
+          ]
+        }
+    }
+  ]
+}

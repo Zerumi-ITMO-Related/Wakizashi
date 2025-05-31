@@ -1,0 +1,50 @@
+{
+  "line": 1,
+  "column": 0,
+  "type": "PROGRAM",
+  "children": [
+    {
+      "line": 1,
+      "column": 0,
+      "type": "FUN_DECLARATION",
+      "name": "main",
+      "returnType": "Unit",
+      "params": [      ],
+      "body":
+        {
+          "line": 1,
+          "column": 18,
+          "type": "BLOCK",
+          "children": [
+            {
+              "line": 2,
+              "column": 4,
+              "type": "FUN_CALL",
+              "name": "print",
+              "args": [
+                {
+                  "line": 2,
+                  "column": 10,
+                  "type": "LITERAL",
+                  "value": "\"Hello, world!\"",
+                  "valType": "String"
+                }
+              ]
+            },
+            {
+              "line": 4,
+              "column": 4,
+              "type": "RETURN",
+              "value":
+                {
+                  "line": 4,
+                  "column": 11,
+                  "type": "LITERAL",
+                  "value": "\"Hello, world!\"",
+                  "valType": "Unit"
+                }            }
+          ]
+        }
+    }
+  ]
+}

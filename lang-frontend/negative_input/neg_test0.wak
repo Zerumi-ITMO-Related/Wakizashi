@@ -1,0 +1,6 @@
+fun main() : Unit {
+    val a: Int = "10";
+    print_number(a);
+
+    return Unit;
+}
