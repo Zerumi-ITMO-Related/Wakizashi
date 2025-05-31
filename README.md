@@ -117,7 +117,7 @@ Architecture of the compiler available below:
 The CLI (`lang-compiler` module) manages all the compilation pipeline, showed above. 
 It provides simple access to execute Wakizashi source code directly on Stack CPU.
 
-Usage: `waki [-h | --help] | [--show-ast] [--show-sasm] [--export-ast <filename>] [--export-sasm <filename>] 
+Usage: `waki [-h | --help] | [--with-input="String1 String2..."] [--show-ast] [--show-sasm] [--export-ast <filename>] [--export-sasm <filename>] 
 [--export-machine <filename>] [--to-ast | --to-sasm] [--from-ast | --from-sasm] <input_file>`
 
 - `[--show-*]` - stands for the ability to print the output of * stage of compilation
@@ -126,6 +126,7 @@ can only be exported in file.
 - `[--from-*]`..`[--to-*]` - start and stop the pipeline at specific stages. By default,
 pipeline goes from .wak file to CPU output. But you can control it. It affects `input_file`:
 it should be valid for start stage of compilation.
+- `[--with-input]` - provide some input to CPU. Separate different strings with space.
 
 Example:
 
